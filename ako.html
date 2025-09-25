@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👑Skylord Vibrasi👑 Brainwave Player</title>
+    <style>
+        /* CSS Baru untuk membuat tampilan penuh layar */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            display: flex; /* Menggunakan Flexbox untuk centering */
+            justify-content: center;
+            align-items: center;
+            background-color: #000; /* Warna latar belakang tetap hitam */
+            color: #fff;
+            font-family: Arial, sans-serif;
+            overflow: auto; /* Memungkinkan scrolling jika konten melebihi layar */
+        }
+
+        .player-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background-color: #000;
+            color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            width: 90%; /* Menggunakan persentase agar lebih responsif di berbagai layar */
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        .player-container h1 {
+            color: #00ff00;
+            margin-bottom: 20px; 
+            line-height: 1.2; /* Mengurangi spasi antar baris */
+        }
+        
+        #titleSub {
+            font-size: 0.7em; /* Mengatur ukuran font yang lebih kecil */
+        }
+
+        /* Hapus atau sembunyikan input file */
+        .player-container input[type="file"] {
+            display: none;
+        }
+
+        .player-container .file-label {
+            display: none;
+        }
+
+        .player-container .option-group {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .player-container .option-group label {
+            margin: 0;
+        }
+
+        .player-container .controls {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .player-container button {
+            padding: 10px 15px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        #playBtn, #pauseBtn {
+            background-color: #00ff00;
+            color: black;
+        }
+        
+        #playBtn:hover, #pauseBtn:hover {
+            background-color: #00cc00;
+        }
+
+        #stopBtn {
+            background-color: #ff0000;
+            color: white;
+        }
+
+        #stopBtn:hover {
+            background-color: #cc0000;
+        }
+        
+        #downloadBtn {
+            background-color: #007BFF;
+            color: white;
+        }
+        
+        #downloadBtn:hover {
+            background-color: #0056b3;
+        }
+        
+        .player-container #status {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #00ff00;
+            min-height: 20px;
+        }
+        
+        .player-container #timer {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #FFFFFF;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="player-container">
+    <h1 id="playerTitle">
+        <span id="titleMain">👑Skylord Vibrasi👑</span><br>
+        <span id="titleSub">🎧 Brainwave Murni Player 🎧</span>
+    </h1>
+    
+    <div class="option-group">
+        <input type="checkbox" id="pinkNoiseToggle" checked>
+        <label for="pinkNoiseToggle">Aktifkan Noise 🔊</label>
+    </div>
+    
+    <div class="option-group">
+        <input type="checkbox" id="loopToggle">
+        <label for="loopToggle">Ulangi 🔄 (Loop)</label>
+    </div>
+
+    <div class="controls">
+        <button id="playBtn">Play ▶️</button>
+        <button id="pauseBtn" disabled style="display:none;">Pause ⏸️</button>
+        <button id="stopBtn" disabled>Stop ⏹️</button>
+        <button id="downloadBtn">Download 🛅</button>
+    </div>
+    <div id="status"></div>
+    <div id="timer">00:00</div>
+</div>
+
+<script>
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const statusDiv = document.getElementById('status');
+    const timerDiv = document.getElementById('timer');
+    const pinkNoiseToggle = document.getElementById('pinkNoiseToggle');
+    const loopToggle = document.getElementById('loopToggle');
+    const playerTitleElement = document.getElementById('playerTitle');
+
+    let audioContext;
+    let oscillatorL, oscillatorR;
+    let pinkNoiseSource;
+    let sbgData = null;
+    let isPlaying = false;
+    let isPaused = false;
+    let isLooping = false;
+    let timerInterval;
+    let playStartTime;
+    let totalDuration = 0;
+    let pauseOffset = 0;
+    
+    // UBAH DATA INI UNTUK MENGGANTI KONTEN
+    const sbgContentToLoad = `
+        electrofield: pink/10 300+10.5/90
+bodystate: pink/5 300+3.2/95
+liftedstate: pink/2 300+5.2/98
+aurastate: pink/0 300+7.7/100
+alloff:  -
+
+NOW electrofield
++00:02:00 electrofield ->
++00:05:00 bodystate
++00:10:00 bodystate ->
++00:11:00 liftedstate
++00:15:00 liftedstate ->
++00:16:00 aurastate
++00:18:00 aurastate ->
++00:20:00 alloff
+    `;
+
+    function parseTime(timeStr) {
+        const parts = timeStr.split(':');
+        return parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseFloat(parts[2]);
+    }
+
+    function createPinkNoiseBuffer(audioContext, duration) {
+        const bufferSize = audioContext.sampleRate * duration;
+        const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+        const output = buffer.getChannelData(0);
+        
+        let b0, b1, b2, b3, b4, b5, b6;
+        b0 = b1 = b2 = b3 = b4 = b5 = b6 = 0.0;
+        
+        for (let i = 0; i < bufferSize; i++) {
+            let white = Math.random() * 2 - 1;
+            b0 = 0.99886 * b0 + white * 0.0555179;
+            b1 = 0.99474 * b1 + white * 0.0750759;
+            b2 = 0.97509 * b2 + white * 0.1538520;
+            b3 = 0.86200 * b3 + white * 0.3104856;
+            b4 = 0.00000 * b4 + white * 0.5329522;
+            b5 = -0.18500 * b5 + white * 0.1147000;
+            output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.115926;
+            b6 = white * 0.115926;
+            output[i] *= 0.1;
+        }
+        return buffer;
+    }
+
+    function parseSbg(text) {
+        const lines = text.split('\n').filter(line => line.trim() !== '');
+        const presets = {};
+        const events = [];
+        
+        presets['alloff'] = {
+            noiseType: 'pink',
+            noiseVol: 0,
+            freqL: 0,
+            freqR: 0,
+            toneVol: 0
+        };
+
+        lines.forEach(line => {
+            line = line.trim();
+            if (line.startsWith('##') || line.startsWith('-SE')) {
+                return;
+            }
+            const presetMatch = line.match(/^(\w+):\s+([\w\/]+)\s+([\d.]+)\+([\d.]+)\/([\d.]+)/);
+            if (presetMatch) {
+                const name = presetMatch[1];
+                const noiseParts = presetMatch[2].split('/');
+                const noiseType = noiseParts[0];
+                const noiseVol = parseFloat(noiseParts[1] || 0) / 100;
+                const baseFreq = parseFloat(presetMatch[3]);
+                const beatFreq = parseFloat(presetMatch[4]);
+                const toneVol = parseFloat(presetMatch[5]) / 100;
+
+                presets[name] = {
+                    noiseType: noiseType,
+                    noiseVol: noiseVol,
+                    freqL: baseFreq,
+                    freqR: baseFreq + beatFreq,
+                    toneVol: toneVol
+                };
+            }
+            const eventMatch = line.match(/^(\+|NOW)\s*([\d:.]*)\s*(\w+)/);
+            if (eventMatch) {
+                const timeStr = eventMatch[2];
+                const presetName = eventMatch[3];
+                if (presets[presetName]) {
+                    if (eventMatch[1] === 'NOW') {
+                        events.push({ time: 0, preset: presetName });
+                    } else if (eventMatch[1] === '+') {
+                        const timeInSeconds = parseTime(timeStr);
+                        events.push({ time: timeInSeconds, preset: presetName });
+                    }
+                }
+            }
+        });
+        events.sort((a, b) => a.time - b.time);
+        return { presets, events };
+    }
+
+    function updateStatusAndTimer() {
+        if (!isPlaying || !sbgData || !sbgData.events.length) return;
+        
+        const elapsedTime = (Date.now() - playStartTime) / 1000 + pauseOffset;
+        const minutes = Math.floor(elapsedTime / 60);
+        const seconds = Math.floor(elapsedTime % 60);
+        const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        timerDiv.textContent = `Mulai ${formattedTime} / ${formatDuration(totalDuration)}`;
+
+        if (elapsedTime >= totalDuration) {
+            if (isLooping) {
+                stopAudio();
+                startAudio();
+            } else {
+                stopAudio();
+            }
+            return;
+        }
+
+        let currentEvent = sbgData.events[0];
+        for (let i = 0; i < sbgData.events.length; i++) {
+            if (sbgData.events[i].time <= elapsedTime) {
+                currentEvent = sbgData.events[i];
+            } else {
+                break;
+            }
+        }
+        
+        const preset = sbgData.presets[currentEvent.preset];
+        if (preset) {
+            statusDiv.textContent = `Frekuensi saat ini: ${preset.freqL.toFixed(2)} Hz / ${preset.freqR.toFixed(2)} Hz`;
+        }
+    }
+    
+    function formatDuration(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+        return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+    }
+
+    function startAudio() {
+        if (!sbgData || isPlaying) {
+            return;
+        }
+
+        isPlaying = true;
+        isPaused = false;
+        
+        if (!audioContext || audioContext.state === 'closed') {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        audioContext.resume().then(() => {
+            const masterGain = audioContext.createGain();
+            masterGain.gain.setValueAtTime(0.5, audioContext.currentTime);
+            masterGain.connect(audioContext.destination);
+
+            oscillatorL = audioContext.createOscillator();
+            oscillatorR = audioContext.createOscillator();
+            
+            const gainL = audioContext.createGain();
+            const gainR = audioContext.createGain();
+            const pannerL = audioContext.createStereoPanner();
+            const pannerR = audioContext.createStereoPanner();
+            pannerL.pan.setValueAtTime(-1, audioContext.currentTime);
+            pannerR.pan.setValueAtTime(1, audioContext.currentTime);
+            
+            let pinkNoiseGain = null;
+            const isPinkNoiseEnabled = pinkNoiseToggle.checked;
+            
+            if (isPinkNoiseEnabled) {
+                const firstPreset = sbgData.presets[sbgData.events[0].preset];
+                if (firstPreset && firstPreset.noiseType === 'pink') {
+                    // Gunakan BufferSourceNode untuk memutar pink noise
+                    pinkNoiseSource = audioContext.createBufferSource();
+                    pinkNoiseSource.buffer = createPinkNoiseBuffer(audioContext, totalDuration);
+                    pinkNoiseSource.loop = true;
+                    pinkNoiseGain = audioContext.createGain(); 
+                    pinkNoiseSource.connect(pinkNoiseGain);
+                    pinkNoiseGain.connect(masterGain);
+                    pinkNoiseSource.start(0);
+                }
+            }
+            
+            oscillatorL.type = 'sine';
+            oscillatorR.type = 'sine';
+            
+            oscillatorL.connect(gainL);
+            gainL.connect(pannerL);
+            pannerL.connect(masterGain);
+            oscillatorR.connect(gainR);
+            gainR.connect(pannerR);
+            pannerR.connect(masterGain);
+
+            const startTime = audioContext.currentTime;
+            
+            sbgData.events.forEach(event => {
+                const preset = sbgData.presets[event.preset];
+                const scheduledTime = startTime + event.time - pauseOffset;
+
+                if (preset) {
+                    gainL.gain.linearRampToValueAtTime(preset.toneVol, scheduledTime);
+                    gainR.gain.linearRampToValueAtTime(preset.toneVol, scheduledTime);
+                    oscillatorL.frequency.linearRampToValueAtTime(preset.freqL, scheduledTime);
+                    oscillatorR.frequency.linearRampToValueAtTime(preset.freqR, scheduledTime);
+                    if (pinkNoiseGain) {
+                        pinkNoiseGain.gain.linearRampToValueAtTime(preset.noiseVol, scheduledTime);
+                    }
+                }
+            });
+
+            oscillatorL.start(startTime);
+            oscillatorR.start(startTime);
+            
+            playStartTime = Date.now();
+            timerInterval = setInterval(updateStatusAndTimer, 1000);
+            
+            playBtn.disabled = true;
+            playBtn.style.display = 'none';
+            pauseBtn.disabled = false;
+            pauseBtn.style.display = 'inline-block';
+            stopBtn.disabled = false;
+        });
+    }
+
+    function stopAudio() {
+        if (!isPlaying && !isPaused) {
+            return;
+        }
+        
+        if (oscillatorL) {
+            oscillatorL.stop();
+            oscillatorL.disconnect();
+        }
+        if (oscillatorR) {
+            oscillatorR.stop();
+            oscillatorR.disconnect();
+        }
+        if (pinkNoiseSource) {
+            pinkNoiseSource.stop();
+            pinkNoiseSource.disconnect();
+            pinkNoiseSource = null;
+        }
+
+        if (audioContext && audioContext.state !== 'closed') {
+            audioContext.close();
+        }
+
+        isPlaying = false;
+        isPaused = false;
+        clearInterval(timerInterval);
+        timerDiv.textContent = 'Selesai 00:00';
+        statusDiv.textContent = 'Selamat Program Berjalan Sukses !!!';
+        playBtn.disabled = false;
+        playBtn.style.display = 'inline-block';
+        pauseBtn.disabled = true;
+        pauseBtn.style.display = 'none';
+        stopBtn.disabled = true;
+        pauseBtn.textContent = 'Pause';
+        pauseOffset = 0;
+    }
+
+    function pauseAudio() {
+        if (isPlaying) {
+            isPlaying = false;
+            isPaused = true;
+            audioContext.suspend().then(() => {
+                pauseBtn.textContent = 'Resume ⏯️';
+                statusDiv.textContent = 'Pemutaran dijeda';
+                clearInterval(timerInterval);
+                pauseOffset = (Date.now() - playStartTime) / 1000 + pauseOffset;
+            });
+        }
+    }
+
+    function resumeAudio() {
+        if (isPaused) {
+            isPlaying = true;
+            isPaused = false;
+            audioContext.resume().then(() => {
+                pauseBtn.textContent = 'Pause';
+                statusDiv.textContent = 'Melanjutkan pemutaran...';
+                playStartTime = Date.now();
+                timerInterval = setInterval(updateStatusAndTimer, 1000);
+            });
+        }
+    }
+
+    function renderAudioForDownload(duration) {
+        const sampleRate = 44100;
+        const offlineCtx = new OfflineAudioContext(2, duration * sampleRate, sampleRate);
+
+        const masterGain = offlineCtx.createGain();
+        masterGain.gain.setValueAtTime(0.5, offlineCtx.currentTime);
+        masterGain.connect(offlineCtx.destination);
+
+        const oscillatorL = offlineCtx.createOscillator();
+        const oscillatorR = offlineCtx.createOscillator();
+
+        const gainL = offlineCtx.createGain();
+        const gainR = offlineCtx.createGain();
+        const pannerL = offlineCtx.createStereoPanner();
+        const pannerR = offlineCtx.createStereoPanner();
+        pannerL.pan.setValueAtTime(-1, offlineCtx.currentTime);
+        pannerR.pan.setValueAtTime(1, offlineCtx.currentTime);
+
+        let pinkNoiseSource = null;
+        if (pinkNoiseToggle.checked) {
+            pinkNoiseSource = offlineCtx.createBufferSource();
+            pinkNoiseSource.buffer = createPinkNoiseBuffer(offlineCtx, duration);
+            pinkNoiseSource.loop = true;
+            const pinkNoiseGain = offlineCtx.createGain();
+            pinkNoiseSource.connect(pinkNoiseGain);
+            pinkNoiseGain.connect(masterGain);
+            pinkNoiseSource.start(0);
+        }
+
+        oscillatorL.type = 'sine';
+        oscillatorR.type = 'sine';
+        oscillatorL.connect(gainL);
+        gainL.connect(pannerL);
+        pannerL.connect(masterGain);
+        oscillatorR.connect(gainR);
+        gainR.connect(pannerR);
+        pannerR.connect(masterGain);
+
+        const startTime = offlineCtx.currentTime;
+
+        sbgData.events.forEach(event => {
+            const preset = sbgData.presets[event.preset];
+            const scheduledTime = startTime + event.time;
+
+            if (preset) {
+                gainL.gain.linearRampToValueAtTime(preset.toneVol, scheduledTime);
+                gainR.gain.linearRampToValueAtTime(preset.toneVol, scheduledTime);
+                oscillatorL.frequency.linearRampToValueAtTime(preset.freqL, scheduledTime);
+                oscillatorR.frequency.linearRampToValueAtTime(preset.freqR, scheduledTime);
+                if (pinkNoiseSource) {
+                    pinkNoiseSource.gain.linearRampToValueAtTime(preset.noiseVol, scheduledTime);
+                }
+            }
+        });
+
+        oscillatorL.start(startTime);
+        oscillatorR.start(startTime);
+        oscillatorL.stop(duration);
+        oscillatorR.stop(duration);
+
+        return offlineCtx.startRendering();
+    }
+
+    function audioBufferToWavBlob(audioBuffer) {
+        const numOfChan = audioBuffer.numberOfChannels;
+        const totalLength = audioBuffer.length * numOfChan * 2 + 44;
+        const samples = new Int16Array(audioBuffer.length * numOfChan);
+        
+        for (let i = 0; i < audioBuffer.length; i++) {
+            for (let channel = 0; channel < numOfChan; channel++) {
+                const sample = audioBuffer.getChannelData(channel)[i];
+                const intSample = Math.max(-1, Math.min(1, sample)) * 32767;
+                samples[i * numOfChan + channel] = intSample;
+            }
+        }
+
+        const buffer = new ArrayBuffer(totalLength);
+        const view = new DataView(buffer);
+
+        writeString(view, 0, 'RIFF');
+        view.setUint32(4, 36 + samples.length * 2, true);
+        writeString(view, 8, 'WAVE');
+        writeString(view, 12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, numOfChan, true);
+        view.setUint32(24, audioBuffer.sampleRate, true);
+        view.setUint32(28, audioBuffer.sampleRate * 2 * numOfChan, true);
+        view.setUint16(32, numOfChan * 2, true);
+        view.setUint16(34, 16, true);
+        writeString(view, 36, 'data');
+        view.setUint32(40, samples.length * 2, true);
+
+        let offset = 44;
+        for (let i = 0; i < samples.length; i++, offset += 2) {
+            view.setInt16(offset, samples[i], true);
+        }
+
+        return new Blob([view], { type: 'audio/wav' });
+    }
+
+    function writeString(view, offset, string) {
+        for (let i = 0; i < string.length; i++) {
+            view.setUint8(offset + i, string.charCodeAt(i));
+        }
+    }
+
+    function loadSbgData() {
+        try {
+            sbgData = parseSbg(sbgContentToLoad);
+            if (sbgData && sbgData.events.length > 0) {
+                totalDuration = sbgData.events[sbgData.events.length - 1].time;
+                timerDiv.textContent = `Durasi 00:00 / ${formatDuration(totalDuration)}`;
+                statusDiv.textContent = `Vibrasi Aura Korektor Otomatis Berhasil Ditransfer Skylord ✓ Silahkan Klik Play Sekarang`;
+                playBtn.disabled = false;
+                downloadBtn.disabled = false;
+            } else {
+                statusDiv.textContent = 'Gagal memproses file .sbg. Skylord Menolak Akses Anda';
+                playBtn.disabled = true;
+            }
+        } catch (error) {
+            statusDiv.textContent = `Terjadi kesalahan saat memproses data: ${error.message}`;
+            playBtn.disabled = true;
+        }
+    }
+    
+    window.onload = loadSbgData;
+    
+    playBtn.addEventListener('click', startAudio);
+    stopBtn.addEventListener('click', stopAudio);
+    
+    pauseBtn.addEventListener('click', () => {
+        if (isPaused) {
+            resumeAudio();
+        } else {
+            pauseAudio();
+        }
+    });
+
+    loopToggle.addEventListener('change', (event) => {
+        isLooping = event.target.checked;
+    });
+    
+    downloadBtn.addEventListener('click', () => {
+        if (!sbgData || sbgData.events.length === 0) {
+            statusDiv.textContent = 'Tidak ada file untuk diunduh.';
+            return;
+        }
+
+        statusDiv.textContent = 'Skylord Membuat File Audio, Mohon Tunggu...';
+        playBtn.disabled = true;
+        pauseBtn.disabled = true;
+        stopBtn.disabled = true;
+        downloadBtn.disabled = true;
+        
+        if (isPlaying || isPaused) {
+            stopAudio();
+        }
+
+        renderAudioForDownload(totalDuration)
+            .then(audioBuffer => {
+                const wavBlob = audioBufferToWavBlob(audioBuffer);
+                const url = URL.createObjectURL(wavBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'vibrasi-alpha.wav';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                statusDiv.textContent = 'File .wav Berhasil Dibuat Oleh Skylord dan Siap Diunduh!';
+                playBtn.disabled = false;
+                downloadBtn.disabled = false;
+            })
+            .catch(error => {
+                statusDiv.textContent = `Terjadi kesalahan saat membuat file audio: ${error.message}`;
+                playBtn.disabled = false;
+                downloadBtn.disabled = false;
+            });
+    });
+</script>
+
+</body>
+</html>
+
