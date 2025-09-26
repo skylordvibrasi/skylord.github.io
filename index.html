@@ -20,8 +20,56 @@
             overflow: auto; /* Memungkinkan scrolling jika konten melebihi layar */
         }
 
-        .player-container {
+        /* --- CSS BARU: Password Overlay --- */
+        #password-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95); /* Sedikit transparan agar terlihat gelap */
+            z-index: 1000; /* Pastikan di atas semua elemen lain */
             display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #00ff00;
+            font-size: 1.2em;
+            padding: 20px;
+        }
+
+        #password-overlay input[type="password"] {
+            padding: 10px;
+            margin: 15px 0;
+            width: 80%;
+            max-width: 300px;
+            border: 2px solid #00ff00;
+            background-color: #111;
+            color: #fff;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        #password-overlay button {
+            padding: 10px 20px;
+            background-color: #00ff00;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+
+        #password-overlay button:hover {
+            background-color: #00cc00;
+        }
+        /* ----------------------------------- */
+
+
+        .player-container {
+            display: none; /* UBAH: Sembunyikan secara default, akan ditampilkan oleh JS setelah kata sandi benar */
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -31,6 +79,7 @@
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
             width: 90%; /* Menggunakan persentase agar lebih responsif di berbagai layar */
+            max-width: 500px;
             margin: 20px auto;
             text-align: center;
         }
@@ -38,19 +87,15 @@
         .player-container h1 {
             color: #00ff00;
             margin-bottom: 20px; 
-            line-height: 1.2; /* Mengurangi spasi antar baris */
+            line-height: 1.2;
         }
         
         #titleSub {
-            font-size: 0.7em; /* Mengatur ukuran font yang lebih kecil */
+            font-size: 0.7em;
         }
 
-        /* Hapus atau sembunyikan input file */
-        .player-container input[type="file"] {
-            display: none;
-        }
-
-        .player-container .file-label {
+        /* Menyembunyikan elemen input file yang tidak terpakai */
+        .player-container input[type="file"], .player-container .file-label {
             display: none;
         }
 
@@ -127,6 +172,13 @@
 </head>
 <body>
 
+<div id="password-overlay">
+    <h2>Akses Terkunci 🔐</h2>
+    <p>Masukkan Kata Sandi:</p>
+    <input type="password" id="passwordInput" placeholder="Kata Sandi Rahasia" autocomplete="off">
+    <button id="submitPasswordBtn">Masuk 🔑</button>
+    <p id="passwordMessage" style="color: red; margin-top: 10px;"></p>
+</div>
 <div class="player-container">
     <h1 id="playerTitle">
         <span id="titleMain">👑Skylord Vibrasi👑</span><br>
@@ -154,6 +206,29 @@
 </div>
 
 <script>
+    // --- LOGIKA KATA SANDI BARU ---
+    const SECRET_PASSWORD = "skylord1983#aura"; // GANTI KATA SANDI INI!
+    const passwordOverlay = document.getElementById('password-overlay');
+    const passwordInput = document.getElementById('passwordInput');
+    const submitPasswordBtn = document.getElementById('submitPasswordBtn');
+    const passwordMessage = document.getElementById('passwordMessage');
+    const playerContainer = document.querySelector('.player-container');
+
+    function checkPassword() {
+        if (passwordInput.value === SECRET_PASSWORD) {
+            // Kata sandi benar, sembunyikan overlay dan tampilkan player
+            passwordOverlay.style.display = 'none';
+            playerContainer.style.display = 'flex'; // Tampilkan player-container
+            // Lanjutkan proses loading SBG data
+            loadSbgData(); 
+        } else {
+            // Kata sandi salah
+            passwordMessage.textContent = 'Kata Sandi Salah. Akses Ditolak.';
+            passwordInput.value = ''; // Kosongkan input
+        }
+    }
+    // -----------------------------------
+    
     const playBtn = document.getElementById('playBtn');
     const pauseBtn = document.getElementById('pauseBtn');
     const stopBtn = document.getElementById('stopBtn');
@@ -162,21 +237,31 @@
     const timerDiv = document.getElementById('timer');
     const pinkNoiseToggle = document.getElementById('pinkNoiseToggle');
     const loopToggle = document.getElementById('loopToggle');
-    const playerTitleElement = document.getElementById('playerTitle');
 
     let audioContext;
     let oscillatorL, oscillatorR;
     let pinkNoiseSource;
+    
+    // Variabel untuk Audio Eksternal
+    let externalAudioBuffer = null;
+    let externalAudioSource = null;
+    // BARU: Array untuk menyimpan sumber loop tambahan (untuk pause/stop yang lebih bersih)
+    let externalAudioLoopSources = []; 
+
     let sbgData = null;
     let isPlaying = false;
     let isPaused = false;
-    let isLooping = false;
     let timerInterval;
     let playStartTime;
-    let totalDuration = 0;
+    let totalDuration = 0; // Durasi yang ditampilkan (akan sama dengan sbgDuration)
+    let sbgDuration = 0; // Durasi actual dari data SBG
     let pauseOffset = 0;
     
-    // UBAH DATA INI UNTUK MENGGANTI KONTEN
+    // NAMA FILE AUDIO EKSTERNAL. PASTIKAN FILE INI BERADA DI FOLDER YANG SAMA!
+    const EXTERNAL_AUDIO_FILENAME = 'file.wav'; 
+    const MASTER_VOLUME = 0.4; // Volume master mix
+
+    // DATA SBG ANDA
     const sbgContentToLoad = `
         electrofield: pink/10 300+10.5/90
 bodystate: pink/5 300+3.2/95
@@ -201,6 +286,7 @@ NOW electrofield
     }
 
     function createPinkNoiseBuffer(audioContext, duration) {
+        // Implementasi Pink Noise (tetap sama)
         const bufferSize = audioContext.sampleRate * duration;
         const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
         const output = buffer.getChannelData(0);
@@ -224,6 +310,7 @@ NOW electrofield
     }
 
     function parseSbg(text) {
+        // Implementasi Parser SBG (tetap sama)
         const lines = text.split('\n').filter(line => line.trim() !== '');
         const presets = {};
         const events = [];
@@ -277,46 +364,115 @@ NOW electrofield
         return { presets, events };
     }
 
-    function updateStatusAndTimer() {
-        if (!isPlaying || !sbgData || !sbgData.events.length) return;
-        
-        const elapsedTime = (Date.now() - playStartTime) / 1000 + pauseOffset;
-        const minutes = Math.floor(elapsedTime / 60);
-        const seconds = Math.floor(elapsedTime % 60);
-        const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        timerDiv.textContent = `Mulai ${formattedTime} / ${formatDuration(totalDuration)}`;
-
-        if (elapsedTime >= totalDuration) {
-            if (isLooping) {
-                stopAudio();
-                startAudio();
-            } else {
-                stopAudio();
-            }
-            return;
-        }
-
-        let currentEvent = sbgData.events[0];
-        for (let i = 0; i < sbgData.events.length; i++) {
-            if (sbgData.events[i].time <= elapsedTime) {
-                currentEvent = sbgData.events[i];
-            } else {
-                break;
-            }
-        }
-        
-        const preset = sbgData.presets[currentEvent.preset];
-        if (preset) {
-            statusDiv.textContent = `Frekuensi saat ini: ${preset.freqL.toFixed(2)} Hz / ${preset.freqR.toFixed(2)} Hz`;
-        }
-    }
-    
     function formatDuration(seconds) {
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = Math.floor(seconds % 60);
         return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
     }
 
+    // FUNGSI BARU: Memuat File Audio Eksternal
+    async function loadExternalAudio() {
+        if (!window.fetch || !window.AudioContext) {
+            return;
+        }
+        
+        statusDiv.textContent = `Memuat (${EXTERNAL_AUDIO_FILENAME}), mohon tunggu...`;
+        
+        try {
+            if (!audioContext || audioContext.state === 'closed') {
+                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
+            const response = await fetch(EXTERNAL_AUDIO_FILENAME);
+            if (!response.ok) {
+                 throw new Error(`Gagal memuat file: ${response.statusText}`);
+            }
+            const arrayBuffer = await response.arrayBuffer();
+
+            externalAudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+            
+            statusDiv.textContent = `File eksternal berhasil dimuat. Siap dicampur!`;
+            
+        } catch (error) {
+            statusDiv.textContent = `Gagal memuat atau mendekode audio eksternal: ${error.message}. Mode Murni Brainwave Aktif.`;
+            externalAudioBuffer = null;
+            console.error(error);
+        } finally {
+            if (sbgData && sbgData.events.length > 0) {
+                 playBtn.disabled = false;
+                 statusDiv.textContent = `Vibrasi Aura Korektor Otomatis Berhasil Ditransfer Skylord ✓ Play dan Tunggu`;
+            }
+        }
+    }
+    
+    // FUNGSI MODIFIKASI: Menghentikan SBG Tepat Waktu
+    function updateStatusAndTimer() {
+        if (!sbgData || !sbgData.events.length) return; 
+        
+        const elapsedTime = (Date.now() - playStartTime) / 1000 + pauseOffset;
+        
+        const isSbgFinished = !loopToggle.checked && elapsedTime >= sbgDuration;
+
+        if (isSbgFinished) {
+            // HENTIKAN HANYA GENERATOR BRAINWAVE
+            if (oscillatorL) {
+                oscillatorL.stop(audioContext.currentTime);
+                oscillatorL.disconnect();
+                oscillatorL = null;
+            }
+            if (oscillatorR) {
+                oscillatorR.stop(audioContext.currentTime);
+                oscillatorR.disconnect();
+                oscillatorR = null;
+            }
+            if (pinkNoiseSource) {
+                pinkNoiseSource.stop(audioContext.currentTime);
+                pinkNoiseSource.disconnect();
+                pinkNoiseSource = null;
+            }
+
+            // PERIKSA STATUS AUDIO EKSTERNAL
+            if (externalAudioSource) {
+                clearInterval(timerInterval);
+                isPlaying = false;
+                
+                statusDiv.textContent = 'Program Sukses !!! Audio Eksternal Berlanjut...';
+                
+                // Menonaktifkan tombol pause/resume
+                pauseBtn.disabled = true; 
+                playBtn.disabled = true;
+            } else {
+                stopAudio(); 
+                statusDiv.textContent = 'Program Brainwave Selesai. Selamat!';
+            }
+            
+            timerDiv.textContent = `Durasi ${formatDuration(sbgDuration)} / ${formatDuration(sbgDuration)}`;
+            
+        } else {
+            // JIKA BELUM SELESAI
+            const formattedTime = formatDuration(elapsedTime);
+            const formattedDuration = formatDuration(totalDuration);
+            timerDiv.textContent = `Mulai ${formattedTime} / ${formattedDuration}`;
+            
+            // Update status frekuensi
+            let currentEvent = sbgData.events[0];
+            for (let i = 0; i < sbgData.events.length; i++) {
+                if (sbgData.events[i].time <= elapsedTime) {
+                    currentEvent = sbgData.events[i];
+                } else {
+                    break;
+                }
+            }
+            
+            const preset = sbgData.presets[currentEvent.preset];
+            if (preset) {
+                statusDiv.textContent = `Frekuensi saat ini: ${preset.freqL.toFixed(2)} Hz / ${preset.freqR.toFixed(2)} Hz`;
+            }
+        }
+    }
+
+
+    // FUNGSI MODIFIKASI: Start Audio untuk Mode Campuran (LOGIKA LOOP/STOP AUDIO EKSTERNAL DIPERBARUI)
     function startAudio() {
         if (!sbgData || isPlaying) {
             return;
@@ -330,9 +486,77 @@ NOW electrofield
         }
         audioContext.resume().then(() => {
             const masterGain = audioContext.createGain();
-            masterGain.gain.setValueAtTime(0.5, audioContext.currentTime);
+            masterGain.gain.setValueAtTime(MASTER_VOLUME, audioContext.currentTime); 
             masterGain.connect(audioContext.destination);
 
+            const startTime = audioContext.currentTime;
+            
+            // LOGIKA AUDIO EKSTERNAL
+            if (externalAudioBuffer) {
+                // Bersihkan sumber loop lama
+                externalAudioLoopSources = [];
+                
+                externalAudioSource = audioContext.createBufferSource();
+                externalAudioSource.buffer = externalAudioBuffer;
+                
+                externalAudioSource.connect(masterGain); 
+                
+                const offset = pauseOffset;
+                
+                // Durasi audio eksternal
+                const externalAudioDuration = externalAudioBuffer.duration;
+                
+                // Waktu penghentian yang dijadwalkan (akhir program SBG dalam waktu AudioContext)
+                const stopPoint = startTime + sbgDuration - offset; 
+
+                // Menghitung berapa kali audio eksternal perlu diulang untuk menutupi sbgDuration
+                const totalDurationNeeded = sbgDuration - offset;
+                // Hitung loop yang diperlukan (termasuk putaran pertama)
+                const numLoops = Math.ceil(totalDurationNeeded / externalAudioDuration);
+                
+                let currentStartTime = 0; // Waktu relatif terhadap start AudioContext
+                let currentOffset = offset;
+                
+                for (let i = 0; i < numLoops; i++) {
+                    const durationToPlay = Math.min(externalAudioDuration - currentOffset, totalDurationNeeded - currentStartTime);
+                    
+                    if (durationToPlay > 0) {
+                        // Start: Waktu saat ini + waktu di mana pengulangan ini dimulai
+                        const startPoint = startTime + currentStartTime;
+                        
+                        let sourceToSchedule;
+                        
+                        if (i === 0) {
+                            sourceToSchedule = externalAudioSource; // Sumber utama
+                            sourceToSchedule.start(startPoint, currentOffset); 
+                        } else {
+                            // Untuk pengulangan berikutnya, buat sumber baru
+                            sourceToSchedule = audioContext.createBufferSource();
+                            sourceToSchedule.buffer = externalAudioBuffer;
+                            sourceToSchedule.connect(masterGain);
+                            
+                            // Mulai dari 0 pada setiap loop baru
+                            sourceToSchedule.start(startPoint, 0); 
+                            
+                            // Simpan referensi ke loopSource agar bisa dihentikan di stopAudio
+                            externalAudioLoopSources.push(sourceToSchedule); 
+                        }
+                        
+                        // Hentikan sumber ini tepat pada waktu akhir SBG 
+                        // Jika durasinya melebihi stopPoint, panggil stop() pada waktu tersebut.
+                        sourceToSchedule.stop(stopPoint); 
+                        
+                        currentStartTime += durationToPlay;
+                        currentOffset = 0; // Setelah putaran pertama, offset kembali ke 0
+                    }
+                }
+                
+                externalAudioSource.onended = () => {
+                    // Hanya untuk debug atau jika terjadi kesalahan
+                };
+            }
+            
+            // LOGIKA BRAINWAVE GENERATOR
             oscillatorL = audioContext.createOscillator();
             oscillatorR = audioContext.createOscillator();
             
@@ -349,14 +573,15 @@ NOW electrofield
             if (isPinkNoiseEnabled) {
                 const firstPreset = sbgData.presets[sbgData.events[0].preset];
                 if (firstPreset && firstPreset.noiseType === 'pink') {
-                    // Gunakan BufferSourceNode untuk memutar pink noise
                     pinkNoiseSource = audioContext.createBufferSource();
-                    pinkNoiseSource.buffer = createPinkNoiseBuffer(audioContext, totalDuration);
-                    pinkNoiseSource.loop = true;
+                    // Untuk pink noise, kita bisa menggunakan loop jika loopToggle diaktifkan, atau tidak
+                    pinkNoiseSource.buffer = createPinkNoiseBuffer(audioContext, sbgDuration); 
+                    pinkNoiseSource.loop = loopToggle.checked; 
+                    
                     pinkNoiseGain = audioContext.createGain(); 
                     pinkNoiseSource.connect(pinkNoiseGain);
                     pinkNoiseGain.connect(masterGain);
-                    pinkNoiseSource.start(0);
+                    pinkNoiseSource.start(0, pauseOffset);
                 }
             }
             
@@ -370,25 +595,26 @@ NOW electrofield
             gainR.connect(pannerR);
             pannerR.connect(masterGain);
 
-            const startTime = audioContext.currentTime;
-            
             sbgData.events.forEach(event => {
                 const preset = sbgData.presets[event.preset];
                 const scheduledTime = startTime + event.time - pauseOffset;
 
-                if (preset) {
-                    gainL.gain.linearRampToValueAtTime(preset.toneVol, scheduledTime);
-                    gainR.gain.linearRampToValueAtTime(preset.toneVol, scheduledTime);
-                    oscillatorL.frequency.linearRampToValueAtTime(preset.freqL, scheduledTime);
-                    oscillatorR.frequency.linearRampToValueAtTime(preset.freqR, scheduledTime);
-                    if (pinkNoiseGain) {
-                        pinkNoiseGain.gain.linearRampToValueAtTime(preset.noiseVol, scheduledTime);
+                if (scheduledTime >= startTime) {
+                    if (preset) {
+                        gainL.gain.linearRampToValueAtTime(preset.toneVol, scheduledTime);
+                        gainR.gain.linearRampToValueAtTime(preset.toneVol, scheduledTime);
+                        oscillatorL.frequency.linearRampToValueAtTime(preset.freqL, scheduledTime);
+                        oscillatorR.frequency.linearRampToValueAtTime(preset.freqR, scheduledTime);
+                        
+                        if (pinkNoiseGain) {
+                            pinkNoiseGain.gain.linearRampToValueAtTime(preset.noiseVol, scheduledTime);
+                        }
                     }
                 }
             });
 
-            oscillatorL.start(startTime);
-            oscillatorR.start(startTime);
+            oscillatorL.start(startTime, pauseOffset);
+            oscillatorR.start(startTime, pauseOffset);
             
             playStartTime = Date.now();
             timerInterval = setInterval(updateStatusAndTimer, 1000);
@@ -401,24 +627,44 @@ NOW electrofield
         });
     }
 
+    // FUNGSI MODIFIKASI: Stop Audio untuk Semua Sumber (Termasuk Sumber Loop Eksternal)
     function stopAudio() {
-        if (!isPlaying && !isPaused) {
+        if (!isPlaying && !isPaused && !externalAudioSource) {
             return;
         }
         
+        // Hentikan Brainwave Generator
         if (oscillatorL) {
             oscillatorL.stop();
             oscillatorL.disconnect();
+            oscillatorL = null;
         }
         if (oscillatorR) {
             oscillatorR.stop();
             oscillatorR.disconnect();
+            oscillatorR = null;
         }
         if (pinkNoiseSource) {
             pinkNoiseSource.stop();
             pinkNoiseSource.disconnect();
             pinkNoiseSource = null;
         }
+
+        // Hentikan Audio Eksternal Utama
+        if (externalAudioSource) {
+            externalAudioSource.stop();
+            externalAudioSource.disconnect();
+            externalAudioSource = null;
+        }
+        
+        // Hentikan Audio Eksternal Loop Tambahan
+        externalAudioLoopSources.forEach(source => {
+            if (source) {
+                source.stop();
+                source.disconnect();
+            }
+        });
+        externalAudioLoopSources = []; // Kosongkan array sumber loop
 
         if (audioContext && audioContext.state !== 'closed') {
             audioContext.close();
@@ -427,17 +673,18 @@ NOW electrofield
         isPlaying = false;
         isPaused = false;
         clearInterval(timerInterval);
-        timerDiv.textContent = 'Selesai 00:00';
-        statusDiv.textContent = 'Selamat Program Berjalan Sukses !!!';
+        timerDiv.textContent = `Selesai 00:00 / ${formatDuration(totalDuration)}`;
+        statusDiv.textContent = 'Selamat Program Anda Berjalan Sukses !!!';
         playBtn.disabled = false;
         playBtn.style.display = 'inline-block';
         pauseBtn.disabled = true;
         pauseBtn.style.display = 'none';
         stopBtn.disabled = true;
-        pauseBtn.textContent = 'Pause';
+        pauseBtn.textContent = 'Pause ⏸️';
         pauseOffset = 0;
     }
 
+    // FUNGSI MODIFIKASI: Pause Audio
     function pauseAudio() {
         if (isPlaying) {
             isPlaying = false;
@@ -451,12 +698,13 @@ NOW electrofield
         }
     }
 
+    // FUNGSI MODIFIKASI: Resume Audio
     function resumeAudio() {
         if (isPaused) {
             isPlaying = true;
             isPaused = false;
             audioContext.resume().then(() => {
-                pauseBtn.textContent = 'Pause';
+                pauseBtn.textContent = 'Pause ⏸️';
                 statusDiv.textContent = 'Melanjutkan pemutaran...';
                 playStartTime = Date.now();
                 timerInterval = setInterval(updateStatusAndTimer, 1000);
@@ -464,14 +712,48 @@ NOW electrofield
         }
     }
 
+
+    // FUNGSI MODIFIKASI: Render untuk Download (Mencampur SBG dan Audio Eksternal + LOOP FIX)
     function renderAudioForDownload(duration) {
         const sampleRate = 44100;
         const offlineCtx = new OfflineAudioContext(2, duration * sampleRate, sampleRate);
 
         const masterGain = offlineCtx.createGain();
-        masterGain.gain.setValueAtTime(0.5, offlineCtx.currentTime);
+        masterGain.gain.setValueAtTime(MASTER_VOLUME, offlineCtx.currentTime); 
         masterGain.connect(offlineCtx.destination);
 
+        const startTime = offlineCtx.currentTime;
+
+        // LOGIKA AUDIO EKSTERNAL UNTUK DOWNLOAD (BARU - LOOP FIX)
+        if (externalAudioBuffer) {
+            const externalAudioDuration = externalAudioBuffer.duration;
+            const totalDurationNeeded = duration; 
+            const numLoops = Math.ceil(totalDurationNeeded / externalAudioDuration);
+            
+            let currentStartTime = 0; 
+            
+            for (let i = 0; i < numLoops; i++) {
+                const durationToPlay = Math.min(externalAudioDuration, totalDurationNeeded - currentStartTime);
+                
+                if (durationToPlay > 0) {
+                    const startPoint = startTime + currentStartTime;
+                    const stopPoint = startTime + duration;
+                    
+                    const externalDownloadSource = offlineCtx.createBufferSource();
+                    externalDownloadSource.buffer = externalAudioBuffer;
+                    externalDownloadSource.loop = false;
+                    externalDownloadSource.connect(masterGain); 
+                    
+                    // Start selalu dari 0 (karena ini render dari awal)
+                    externalDownloadSource.start(startPoint, 0, durationToPlay);
+                    externalDownloadSource.stop(stopPoint);
+                    
+                    currentStartTime += durationToPlay;
+                }
+            }
+        }
+
+        // LOGIKA BRAINWAVE GENERATOR (Tone dan Noise)
         const oscillatorL = offlineCtx.createOscillator();
         const oscillatorR = offlineCtx.createOscillator();
 
@@ -483,11 +765,13 @@ NOW electrofield
         pannerR.pan.setValueAtTime(1, offlineCtx.currentTime);
 
         let pinkNoiseSource = null;
+        let pinkNoiseGain = null;
         if (pinkNoiseToggle.checked) {
             pinkNoiseSource = offlineCtx.createBufferSource();
-            pinkNoiseSource.buffer = createPinkNoiseBuffer(offlineCtx, duration);
-            pinkNoiseSource.loop = true;
-            const pinkNoiseGain = offlineCtx.createGain();
+            // Durasi buffer pink noise harus sesuai dengan durasi render
+            pinkNoiseSource.buffer = createPinkNoiseBuffer(offlineCtx, duration); 
+            pinkNoiseSource.loop = false; // Tidak di-loop untuk offline render
+            pinkNoiseGain = offlineCtx.createGain();
             pinkNoiseSource.connect(pinkNoiseGain);
             pinkNoiseGain.connect(masterGain);
             pinkNoiseSource.start(0);
@@ -502,32 +786,39 @@ NOW electrofield
         gainR.connect(pannerR);
         pannerR.connect(masterGain);
 
-        const startTime = offlineCtx.currentTime;
-
+        // Penjadwalan SBG EVENTS
         sbgData.events.forEach(event => {
             const preset = sbgData.presets[event.preset];
             const scheduledTime = startTime + event.time;
 
             if (preset) {
+                // Penjadwalan Tone dan Frekuensi (Binaural Beat Terjaga)
                 gainL.gain.linearRampToValueAtTime(preset.toneVol, scheduledTime);
                 gainR.gain.linearRampToValueAtTime(preset.toneVol, scheduledTime);
                 oscillatorL.frequency.linearRampToValueAtTime(preset.freqL, scheduledTime);
                 oscillatorR.frequency.linearRampToValueAtTime(preset.freqR, scheduledTime);
                 if (pinkNoiseSource) {
-                    pinkNoiseSource.gain.linearRampToValueAtTime(preset.noiseVol, scheduledTime);
+                    // Penjadwalan Pink Noise
+                    pinkNoiseGain.gain.linearRampToValueAtTime(preset.noiseVol, scheduledTime);
                 }
             }
         });
 
+        // Menghentikan semua sumber tepat pada durasi SBG
         oscillatorL.start(startTime);
         oscillatorR.start(startTime);
         oscillatorL.stop(duration);
         oscillatorR.stop(duration);
-
+        if (pinkNoiseSource) {
+            pinkNoiseSource.stop(duration);
+        }
+        
         return offlineCtx.startRendering();
     }
 
+
     function audioBufferToWavBlob(audioBuffer) {
+        // Implementasi konversi Buffer ke WAV (tetap sama)
         const numOfChan = audioBuffer.numberOfChannels;
         const totalLength = audioBuffer.length * numOfChan * 2 + 44;
         const samples = new Int16Array(audioBuffer.length * numOfChan);
@@ -571,27 +862,43 @@ NOW electrofield
         }
     }
 
+    // FUNGSI MODIFIKASI: loadSbgData dipanggil HANYA setelah kata sandi benar
     function loadSbgData() {
         try {
             sbgData = parseSbg(sbgContentToLoad);
             if (sbgData && sbgData.events.length > 0) {
-                totalDuration = sbgData.events[sbgData.events.length - 1].time;
+                sbgDuration = sbgData.events[sbgData.events.length - 1].time;
+                totalDuration = sbgDuration;
                 timerDiv.textContent = `Durasi 00:00 / ${formatDuration(totalDuration)}`;
-                statusDiv.textContent = `Vibrasi Aura Korektor Otomatis Berhasil Ditransfer Skylord ✓ Silahkan Klik Play Sekarang`;
-                playBtn.disabled = false;
+                statusDiv.textContent = `Memuat Audio Eksternal...`; // Ubah status awal
+                playBtn.disabled = true; // Nonaktifkan sampai audio eksternal selesai
                 downloadBtn.disabled = false;
             } else {
                 statusDiv.textContent = 'Gagal memproses file .sbg. Skylord Menolak Akses Anda';
                 playBtn.disabled = true;
+                downloadBtn.disabled = true;
             }
         } catch (error) {
             statusDiv.textContent = `Terjadi kesalahan saat memproses data: ${error.message}`;
             playBtn.disabled = true;
+            downloadBtn.disabled = true;
         }
+        
+        loadExternalAudio();
     }
     
-    window.onload = loadSbgData;
-    
+    // window.onload diubah. Player sekarang menampilkan layar kata sandi secara default.
+    // loadSbgData() akan dipanggil dari checkPassword()
+
+    // Event Listeners BARU untuk kata sandi
+    submitPasswordBtn.addEventListener('click', checkPassword);
+    passwordInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            checkPassword();
+        }
+    });
+
+    // Event Listeners yang sudah ada
     playBtn.addEventListener('click', startAudio);
     stopBtn.addEventListener('click', stopAudio);
     
@@ -602,18 +909,15 @@ NOW electrofield
             pauseAudio();
         }
     });
-
-    loopToggle.addEventListener('change', (event) => {
-        isLooping = event.target.checked;
-    });
     
+    // Download Listener (Mencampur SBG dan Audio Eksternal)
     downloadBtn.addEventListener('click', () => {
         if (!sbgData || sbgData.events.length === 0) {
             statusDiv.textContent = 'Tidak ada file untuk diunduh.';
             return;
         }
 
-        statusDiv.textContent = 'Skylord Membuat File Audio, Mohon Tunggu...';
+        statusDiv.textContent = 'Skylord Membuat File Audio Mix, Mohon Tunggu...';
         playBtn.disabled = true;
         pauseBtn.disabled = true;
         stopBtn.disabled = true;
@@ -623,19 +927,20 @@ NOW electrofield
             stopAudio();
         }
 
-        renderAudioForDownload(totalDuration)
+        // renderAudioForDownload kini mencampur SBG dan Audio Eksternal
+        renderAudioForDownload(totalDuration) 
             .then(audioBuffer => {
                 const wavBlob = audioBufferToWavBlob(audioBuffer);
                 const url = URL.createObjectURL(wavBlob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'vibrasi-alpha.wav';
+                a.download = 'vibrasi-mix-alpha.wav'; // Nama file baru
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
 
-                statusDiv.textContent = 'File .wav Berhasil Dibuat Oleh Skylord dan Siap Diunduh!';
+                statusDiv.textContent = 'File .wav Mix Berhasil Dibuat Oleh Skylord dan Siap Diunduh!';
                 playBtn.disabled = false;
                 downloadBtn.disabled = false;
             })
@@ -649,4 +954,3 @@ NOW electrofield
 
 </body>
 </html>
-
