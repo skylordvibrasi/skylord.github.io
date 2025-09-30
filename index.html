@@ -3,8 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>👑Skylord Vibrasi👑 Brainwave Player</title>
+    <title>⚡SKYLORD VIBRASI⚡ Brainwave Player</title>
     <style>
+        @keyframes neonPulseBlue {
+            0%, 100% {
+                box-shadow: 0 0 5px #00FFFF, 0 0 10px #00FFFF, 0 0 20px #00FFFF;
+                border-color: #00FFFF;
+            }
+            50% {
+                box-shadow: 0 0 10px #00FFFF, 0 0 20px #00FFFF, 0 0 40px #00FFFF;
+                border-color: #008888;
+            }
+        }
+        
+        @keyframes neonPulseGreen {
+            0%, 100% {
+                text-shadow: 0 0 5px #39FF14, 0 0 10px #39FF14;
+            }
+            50% {
+                text-shadow: 0 0 10px #39FF14, 0 0 20px #39FF14;
+            }
+        }
+        
+        @keyframes neonPulsePurple {
+            0%, 100% {
+                text-shadow: 0 0 5px #FF00FF, 0 0 10px #FF00FF;
+                color: #FFC0FF;
+            }
+            50% {
+                text-shadow: 0 0 10px #FF00FF, 0 0 20px #FF00FF;
+                color: #FFFFFF;
+            }
+        }
+        
         body, html {
             margin: 0;
             padding: 0;
@@ -15,243 +46,482 @@
             align-items: center;
             background-color: #000;
             color: #fff;
-            font-family: Arial, sans-serif;
-            overflow: auto;
+            font-family: 'Consolas', 'Courier New', monospace;
+            overflow: hidden;
+            flex-direction: column;
         }
-
         #password-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.95);
-            z-index: 1000;
+            background-color: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            color: #fff;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            z-index: 9999;
+            font-size: 1.1em;
             text-align: center;
-            color: #00ff00;
-            font-size: 1.2em;
-            padding: 20px;
-        }
-
-        #password-overlay input[type="password"] {
+            transition: opacity 1s ease-in-out;
+            border-bottom: none; 
             padding: 10px;
-            margin: 15px 0;
+            box-sizing: border-box;
+        }
+        
+        #password-overlay h2 {
+            margin-bottom: 20px;
+            color: #39FF14;
+            font-size: 1.8em;
+            animation: neonPulseGreen 1.5s infinite alternate;
+        }
+        #password-overlay input[type="password"], #password-overlay input[type="text"] {
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #00FFFF;
+            background-color: #1a1a1a;
+            color: #00FFFF; 
+            text-align: center;
+            font-size: 1.4em;
             width: 80%;
             max-width: 300px;
-            border: 2px solid #00ff00;
-            background-color: #111;
-            color: #fff;
-            border-radius: 5px;
-            font-size: 1em;
+            box-shadow: 0 0 10px #00FFFF;
+            transition: all 0.3s;
         }
-
+        
+        #password-overlay input:focus {
+            box-shadow: 0 0 15px #39FF14, 0 0 25px #39FF14;
+            border-color: #39FF14;
+            outline: none;
+        }
         #password-overlay button {
             padding: 10px 20px;
-            background-color: #00ff00;
-            color: black;
+            background-color: #00FFFF;
+            color: #000;
             border: none;
-            border-radius: 5px;
             cursor: pointer;
             font-size: 1em;
-            transition: background-color 0.3s ease;
-        }
-
-        #password-overlay button:hover {
-            background-color: #00cc00;
-        }
-
-        .player-container {
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            background-color: #000;
-            color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-            width: 90%; 
-            max-width: 500px;
-            margin: 20px auto;
-            text-align: center;
-        }
-
-        .player-container h1 {
-            color: #00ff00;
-            margin-bottom: 20px; 
-            line-height: 1.2;
-        }
-        
-        #titleSub {
-            font-size: 0.7em;
-        }
-
-        .player-container input[type="file"], .player-container .file-label {
-            display: none;
-        }
-
-        .player-container .option-group {
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .player-container .option-group label {
-            margin: 0;
-        }
-
-        .player-container .controls {
-            margin-top: 10px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .player-container button {
-            padding: 10px 15px;
-            font-size: 14px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            white-space: nowrap;
-        }
-        
-        #playBtn, #pauseBtn {
-            background-color: #00ff00;
-            color: black;
-        }
-        
-        #playBtn:hover, #pauseBtn:hover {
-            background-color: #00cc00;
-        }
-
-        #stopBtn {
-            background-color: #ff0000;
-            color: white;
-        }
-
-        #stopBtn:hover {
-            background-color: #cc0000;
-        }
-        
-        #downloadBtn {
-            background-color: #007BFF;
-            color: white;
-        }
-        
-        #downloadBtn:hover {
-            background-color: #0056b3;
-        }
-        
-        .player-container #status {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #00ff00;
-            min-height: 20px;
-        }
-        
-        .player-container #timer {
-            font-size: 1.2em;
             font-weight: bold;
-            color: #FFFFFF;
+            transition: all 0.3s;
+            box-shadow: 0 0 10px #00FFFF;
             margin-top: 10px;
+        }
+        #password-overlay button:disabled {
+            background-color: #333;
+            color: #aaa;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        #password-overlay button:hover:not(:disabled) {
+            background-color: #39FF14;
+            box-shadow: 0 0 10px #39FF14, 0 0 20px #39FF14;
+            color: #000;
+        }
+        .container {
+            width: 95%;
+            max-width: 500px;
+            padding: 20px;
+            border: 2px solid #00FFFF;
+            box-shadow: 0 0 15px #00FFFF, 0 0 30px rgba(0, 255, 255, 0.3);
+            background-color: #111;
+            border-radius: 5px;
+            text-align: center;
+            animation: neonPulseBlue 3s infinite alternate;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #FFC0FF;
+            font-size: 2.5em;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            text-shadow: 0 0 8px #FF00FF;
+            line-height: 1.1;
+            animation: neonPulsePurple 2s infinite alternate;
+        }
+        .control-group {
+            margin: 10px 0;
+            padding: 10px;
+            border: 2px solid #39FF14;
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.7);
+            border-radius: 5px;
+            background-color: #1a1a1a;
+        }
+        .control-group span {
+            display: block;
+            margin-bottom: 5px;
+            color: #00FFFF;
+            font-weight: bold;
+            letter-spacing: 1px;
+            font-size: 1.5em;
+        }
+        input[type="text"] {
+            padding: 8px;
+            background-color: #000;
+            border: 1px solid #00FFFF;
+            color: #39FF14;
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 5px;
+            text-align: center;
+            box-shadow: 0 0 5px #00FFFF;
+        }
+        button {
+            padding: 8px 15px;
+            margin: 3px;
+            background-color: #1a1a1a;
+            color: #00FFFF;
+            border: 1px solid #00FFFF;
+            cursor: pointer;
+            border-radius: 0;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 0 8px #00FFFF;
+            font-size: 0.9em;
+        }
+        button:disabled {
+            background-color: #333;
+            color: #666;
+            box-shadow: none;
+            border-color: #333;
+            cursor: not-allowed;
+        }
+        button:hover:not(:disabled) {
+            background-color: #39FF14;
+            color: #000;
+            box-shadow: 0 0 10px #39FF14, 0 0 20px #39FF14;
+            border-color: #39FF14;
+        }
+        
+        #timer {
+            font-size: 1.0em;
+            color: #00FFFF;
+            margin: 15px 0;
+            text-shadow: 0 0 10px #00FFFF, 0 0 5px #39FF14;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        #status {
+            min-height: 20px;
+            color: #39FF14;
+            margin-top: 10px;
+            font-style: italic;
+            text-shadow: 0 0 5px #39FF14;
+            font-size: 0.9em;
+        }
+        
+        .download-group {
+            margin-top: 5px; 
+            border-top: 1px solid #00FFFF;
+            padding-top: 1px; 
+            padding-bottom: 1px;
+            margin-bottom: 50; 
+            flex-shrink: 0;
+        }
+        .download-group h3 {
+            color: #fff;
+            font-size: 1.1em; 
+            margin-top: 15px;
+            margin-bottom: 15px; 
+            text-shadow: 0 0 5px #00FFFF;
+        }
+        .download-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto;
+            gap: 8px; 
+            margin-bottom: 20px;
+        }
+        .download-grid button {
+            width: 100%;
+            margin: 0;
+            padding: 10px; 
+            font-size: 0.75em; 
+        }
+        .toggle-group {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 10px;
+        }
+        .toggle-group label {
+            display: inline-flex;
+            align-items: center;
+            color: #39FF14;
+            cursor: pointer;
+            font-weight: bold;
+            text-shadow: 0 0 5px #39FF14;
+            font-size: 0.9em;
+            user-select: none;
+            position: relative;
+        }
+        .toggle-group input[type="checkbox"] {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-group .switch-ui {
+            display: inline-block;
+            width: 45px;
+            height: 25px;
+            margin-right: 10px;
+            background-color: #333;
+            transition: all 0.4s ease;
+            border-radius: 12.5px;
+            border: 2px solid #00FFFF;
+            box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+            position: relative;
+        }
+        .toggle-group .switch-ui:before {
+            content: '';
+            position: absolute;
+            height: 17px;
+            width: 17px;
+            left: 3px;
+            bottom: 2px;
+            background-color: #FF0000;
+            transition: all 0.4s ease;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #FF0000;
+        }
+        .toggle-group input:checked + .switch-ui {
+            background-color: #39FF14;
+            border-color: #39FF14;
+            box-shadow: 0 0 10px #39FF14, 0 0 20px rgba(57, 255, 20, 0.5);
+        }
+        .toggle-group input:checked + .switch-ui:before {
+            transform: translateX(20px);
+            background-color: #000;
+            box-shadow: 0 0 10px #fff;
+        }
+        
+        @media (max-width: 500px) {
+            body {
+                padding: 0;
+            }
+            
+            .container {
+                width: 100%;
+                max-width: none;
+                padding: 10px;
+                border-radius: 0; 
+                box-shadow: none; 
+                border: none; 
+                animation: none;
+                height: auto; 
+            }
+            h1 {
+                font-size: 2em;
+            }
+            
+            button {
+                padding: 8px 10px;
+                font-size: 0.8em;
+            }
+            
+            .control-group button {
+                width: 32%;
+                margin: 3px 0.5%;
+                padding: 8px 5px;
+            }
+            
+            #password-overlay input[type="password"], #password-overlay input[type="text"] {
+                width: 90%;
+                max-width: 250px;
+                font-size: 0.9em;
+            }
+            #password-overlay h2 {
+                font-size: 1.5em;
+            }
+            
+            .toggle-group {
+                flex-direction: row;
+                gap: 10px;
+            }
+            .toggle-group label {
+                font-size: 0.8em;
+            }
+            .toggle-group .switch-ui {
+                width: 35px;
+                height: 20px;
+            }
+            .toggle-group .switch-ui:before {
+                height: 14px;
+                width: 14px;
+                left: 2px;
+                bottom: 1px;
+            }
+            .toggle-group input:checked + .switch-ui:before {
+                transform: translateX(15px);
+            }
         }
     </style>
+
 </head>
 <body>
-
 <div id="password-overlay">
-    <h2>Akses Terkunci 🔐</h2>
-    <p>Masukkan Kata Sandi:</p>
-    <input type="password" id="passwordInput" placeholder="Kata Sandi Rahasia" autocomplete="off">
-    <button id="submitPasswordBtn">Masuk 🔑</button>
-    <p id="passwordMessage" style="color: red; margin-top: 10px;"></p>
+    <h2>⚡ACCESS CONTROL⚡</h2>
+    <p id="passwordMessage">Akses Masih Terkunci 🔐</p>
+    <input type="password" id="passwordInput" placeholder="Input Kode Akses Kripto 🔑" autofocus>
+    <div>
+        <input type="checkbox" id="showPasswordToggle">
+        <label for="showPasswordToggle">Tampilkan Sandi</label>
+    </div>
+    <button id="submitPasswordBtn" disabled>MEMVERIFIKASI AKSES</button>
 </div>
-<div class="player-container">
-    <h1 id="playerTitle">
-        <span id="titleMain">👑Skylord Vibrasi👑</span><br>
-        <span id="titleSub">🎧 Brainwave Murni Player 🎧</span>
-    </h1>
-    
-    <div class="option-group">
-        <input type="checkbox" id="pinkNoiseToggle" checked>
-        <label for="pinkNoiseToggle">Aktifkan Noise 🔊</label>
+<div class="container">
+    <div class="control-group"> <h1>SKYLORD VIBRASI<br>BRAINWAVE PLAYER</h1>
+    </div> <div class="control-group">
+        <span>👑 PROGRAM AKTIF 👑</span>
+        <input type="text" id="sbgNameInput" value="AURA KOREKTOR OTOMATIS" readonly>
+    </div>
+    <div id="timer">Durasi 00:00 / 00:00</div>
+    <div id="status">Memeriksa Sandi...</div>
+    <div class="control-group">
+        <button id="playBtn" disabled style="display: none;">▶ MULAI</button>
+        <button id="pauseBtn" disabled style="display: none;">⏸ JEDA</button>
+        <button id="stopBtn" disabled>⏹ HENTIKAN</button>
     </div>
     
-    <div class="option-group">
-        <input type="checkbox" id="loopToggle">
-        <label for="loopToggle">Ulangi 🔄 (Loop)</label>
+    <div class="toggle-group">
+        <label for="pinkNoiseToggle">
+            <input type="checkbox" id="pinkNoiseToggle" checked>
+            <span class="switch-ui"></span>FITUR NOISE (ON/OFF)
+        </label>
+        <label for="loopToggle">
+            <input type="checkbox" id="loopToggle">
+            <span class="switch-ui"></span> ULANGI SIKLUS (LOOP)
+        </label>
     </div>
-
-    <div class="controls">
-        <button id="playBtn">Play ▶️</button>
-        <button id="pauseBtn" disabled style="display:none;">Pause ⏸️</button>
-        <button id="stopBtn" disabled>Stop ⏹️</button>
-        <button id="downloadBtn">Download 🛅</button>
-    </div>
-    <div id="status"></div>
-    <div id="timer">00:00</div>
+    
+    <div class="download-group">
+        <h3>EXPORT AUDIO (WAV)</h3>
+        <div class="download-grid">
+            <button id="downloadLBtn" disabled>KANAL KIRI (L)</button>
+            <button id="downloadRBtn" disabled>KANAL KANAN (R)</button>
+            <button id="downloadStereoBtn" disabled>STEREO (L+R)</button>
+            <button id="downloadPinkNoiseBtn" disabled>PINK NOISE</button>
+        </div>
+        </div>
 </div>
 
 <script>
-    const ENCODED_PASSWORD = "c2t5bG9yZDE5ODMjYXVyYQ=="; 
-    const passwordOverlay = document.getElementById('password-overlay');
+    const CORRECT_PASSWORD_HASH = "901dc19b1cd6492b5dee73af035fc72317ca70af53ca53aece9829fe4cfd01fd"; 
+
+    const OVERLAY_ELEMENT = document.getElementById('password-overlay');
     const passwordInput = document.getElementById('passwordInput');
     const submitPasswordBtn = document.getElementById('submitPasswordBtn');
     const passwordMessage = document.getElementById('passwordMessage');
-    const playerContainer = document.querySelector('.player-container');
+    const showPasswordToggle = document.getElementById('showPasswordToggle'); 
 
-    function checkPassword() {
-        const DECODED_PASSWORD = atob(ENCODED_PASSWORD); 
-        
-        if (passwordInput.value === DECODED_PASSWORD) {
-            passwordOverlay.style.display = 'none';
-            playerContainer.style.display = 'flex'; 
-            loadSbgData(); 
+    async function sha256(message) {
+        const msgBuffer = new TextEncoder().encode(message);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return hashHex;
+    }
+
+    function hideOverlay() {
+        OVERLAY_ELEMENT.style.opacity = '0';
+        setTimeout(() => {
+            OVERLAY_ELEMENT.style.display = 'none';
+            initializeInternalSbg();
+        }, 1000); 
+    }
+
+    async function checkAndSubmitPassword() {
+        const enteredPassword = passwordInput.value.trim();
+        passwordMessage.style.color = '#00FFFF';
+        passwordMessage.textContent = "MEMPROSES KODE VERIFIKASI...";
+        submitPasswordBtn.disabled = true;
+
+        const enteredHash = await sha256(enteredPassword);
+
+        if (enteredHash === CORRECT_PASSWORD_HASH) {
+            passwordMessage.style.color = '#39FF14'; 
+            passwordMessage.textContent = "AKSES DITERIMA! MEMUAT KONSOL PLAYER...";
+            passwordInput.disabled = true;
+            hideOverlay();
         } else {
-            passwordMessage.textContent = 'Kata Sandi Salah. Akses Ditolak.';
-            passwordInput.value = ''; 
+            passwordMessage.style.color = '#FF4444';
+            passwordMessage.textContent = "Sandi Salah! Otentikasi Gagal. Silakan coba lagi.";
+            passwordInput.value = '';
+            passwordInput.focus();
+            submitPasswordBtn.disabled = passwordInput.value.trim().length === 0;
         }
     }
-    
+
+    showPasswordToggle.addEventListener('change', () => {
+        if (showPasswordToggle.checked) {
+            passwordInput.type = 'text';
+        } else {
+            passwordInput.type = 'password';
+        }
+    });
+
+    submitPasswordBtn.addEventListener('click', () => {
+        checkAndSubmitPassword();
+    });
+
+    passwordInput.addEventListener('input', () => {
+        submitPasswordBtn.disabled = passwordInput.value.trim().length === 0;
+    });
+
+    passwordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !submitPasswordBtn.disabled) {
+            checkAndSubmitPassword();
+        }
+    });
+
+    function checkPassword() {
+        passwordInput.focus();
+    }
+
+    const sbgNameInput = document.getElementById('sbgNameInput');
     const playBtn = document.getElementById('playBtn');
     const pauseBtn = document.getElementById('pauseBtn');
     const stopBtn = document.getElementById('stopBtn');
-    const downloadBtn = document.getElementById('downloadBtn');
+    const downloadLBtn = document.getElementById('downloadLBtn');
+    const downloadRBtn = document.getElementById('downloadRBtn');
+    const downloadStereoBtn = document.getElementById('downloadStereoBtn');
+    const downloadPinkNoiseBtn = document.getElementById('downloadPinkNoiseBtn');
     const statusDiv = document.getElementById('status');
     const timerDiv = document.getElementById('timer');
     const pinkNoiseToggle = document.getElementById('pinkNoiseToggle');
     const loopToggle = document.getElementById('loopToggle');
+    
+    const externalWavInput = document.getElementById('externalWavInput');
+    
+    const AUTO_LOAD_WAV_FILE = "Starter.wav"; 
+    
+    let externalAudioBuffer = null;
+    let externalAudioSource = null;
+    let externalGainNode = null; 
+    let externalFileName = "";
 
     let audioContext;
     let oscillatorL, oscillatorR;
     let pinkNoiseSource;
-    
-    let externalAudioBuffer = null;
-    let externalAudioSource = null;
-    let externalAudioLoopSources = []; 
-
     let sbgData = null;
     let isPlaying = false;
     let isPaused = false;
+    let isLooping = false;
     let timerInterval;
     let playStartTime;
-    let totalDuration = 0; 
-    let sbgDuration = 0; 
+    let totalDuration = 0;
     let pauseOffset = 0;
+    const SEGMENT_DURATION = 300; 
+    const PINK_NOISE_BUFFER_DURATION = 60; 
     
-    const EXTERNAL_AUDIO_FILENAME = 'file.wav'; 
-    const MASTER_VOLUME = 0.4; 
+    const INTERNAL_SBG_CONTENT = `
 
-    const sbgContentToLoad = `
-        electrofield: pink/10 300+10.5/90
+-SE
+electrofield: pink/10 300+10.5/90
 bodystate: pink/5 300+3.2/95
 liftedstate: pink/2 300+5.2/98
 aurastate: pink/0 300+7.7/100
@@ -266,7 +536,7 @@ NOW electrofield
 +00:16:00 aurastate
 +00:18:00 aurastate ->
 +00:20:00 alloff
-    `;
+`;
 
     function parseTime(timeStr) {
         const parts = timeStr.split(':');
@@ -314,7 +584,7 @@ NOW electrofield
             if (line.startsWith('##') || line.startsWith('-SE')) {
                 return;
             }
-            const presetMatch = line.match(/^(\w+):\s+([\w\/]+)\s+([\d.]+)\+([\d.]+)\/([\d.]+)/);
+            const presetMatch = line.match(/^(\w+):\s*([\w\/]+)\s+([\d.]+)\+([\d.]+)\/([\d.]+)/);
             if (presetMatch) {
                 const name = presetMatch[1];
                 const noiseParts = presetMatch[2].split('/');
@@ -349,91 +619,81 @@ NOW electrofield
         events.sort((a, b) => a.time - b.time);
         return { presets, events };
     }
+    
+    function fetchExternalAudio(url, context) {
+        if (!url) {
+            externalAudioBuffer = null;
+            return Promise.resolve();
+        }
+        
+        if (externalAudioBuffer && externalFileName === url) {
+             statusDiv.textContent = `Audio eksternal ${url} sudah dimuat. Melewatkan proses pengambilan. (Waktu pemuatan cepat)`;
+             return Promise.resolve();
+        }
+        
+        statusDiv.textContent = `Mencoba memuat: ${url}... (0% - Mengambil File)`;
+        externalFileName = url;
 
-    function formatDuration(seconds) {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = Math.floor(seconds % 60);
-        return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+        return fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        statusDiv.textContent = `[PEMBERITAHUAN] File ${url} tidak ditemukan. Memuat tanpa audio eksternal.`;
+                        return Promise.reject(new Error("File not found (404)")); 
+                    }
+                    throw new Error(`Gagal memuat file: ${response.status} ${response.statusText}`);
+                }
+                
+                statusDiv.textContent = `Mencoba memuat: ${url}... (30% - Mendekode Audio)`;
+                return response.arrayBuffer();
+            })
+            .then(arrayBuffer => {
+                return new Promise((resolve, reject) => {
+                    context.decodeAudioData(arrayBuffer, 
+                        (buffer) => {
+                            externalAudioBuffer = buffer;
+                            
+                            statusDiv.textContent = `Audio eksternal ${url} berhasil dimuat. (100% Selesai)`;
+                            resolve();
+                        },
+                        (error) => {
+                            externalAudioBuffer = null;
+                            statusDiv.textContent = `Gagal decode audio dari ${url}: ${error.message}`;
+                            reject(error);
+                        }
+                    );
+                });
+            })
+            .catch(error => {
+                if (error.message.includes("File not found")) {
+                    externalAudioBuffer = null;
+                    return;
+                }
+                externalAudioBuffer = null;
+                statusDiv.textContent = `Gagal memuat file audio eksternal: ${error.message}`;
+            });
     }
 
-    async function loadExternalAudio() {
-        if (!window.fetch || !window.AudioContext) {
+    function updateStatusAndTimer() {
+        if (!isPlaying || (!sbgData && !externalAudioBuffer)) return;
+        
+        const elapsedTime = (Date.now() - playStartTime) / 1000;
+        
+        const minutes = Math.floor(elapsedTime / 60);
+        const seconds = Math.floor(elapsedTime % 60);
+        const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        timerDiv.textContent = `DURASI ${formattedTime} / ${formatDuration(totalDuration)}`;
+
+        if (elapsedTime >= totalDuration) {
+            if (isLooping && (sbgData || externalAudioBuffer)) {
+                stopAudio(); 
+            } else {
+                stopAudio();
+            }
             return;
         }
-        
-        statusDiv.textContent = `Memuat (${EXTERNAL_AUDIO_FILENAME}), mohon tunggu...`;
-        
-        try {
-            if (!audioContext || audioContext.state === 'closed') {
-                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            
-            const response = await fetch(EXTERNAL_AUDIO_FILENAME);
-            if (!response.ok) {
-                 throw new Error(`Gagal memuat file: ${response.statusText}`);
-            }
-            const arrayBuffer = await response.arrayBuffer();
 
-            externalAudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-            
-            statusDiv.textContent = `File eksternal berhasil dimuat. Siap dicampur!`;
-            
-        } catch (error) {
-            statusDiv.textContent = `Gagal memuat atau mendekode audio eksternal: ${error.message}. Mode Murni Brainwave Aktif.`;
-            externalAudioBuffer = null;
-            console.error(error);
-        } finally {
-            if (sbgData && sbgData.events.length > 0) {
-                 playBtn.disabled = false;
-                 statusDiv.textContent = `Vibrasi Aura Korektor Otomatis Berhasil Ditransfer Skylord ✓ Play dan Tunggu`;
-            }
-        }
-    }
-    
-    function updateStatusAndTimer() {
-        if (!sbgData || !sbgData.events.length) return; 
-        
-        const elapsedTime = (Date.now() - playStartTime) / 1000 + pauseOffset;
-        
-        const isSbgFinished = !loopToggle.checked && elapsedTime >= sbgDuration;
-
-        if (isSbgFinished) {
-            if (oscillatorL) {
-                oscillatorL.stop(audioContext.currentTime);
-                oscillatorL.disconnect();
-                oscillatorL = null;
-            }
-            if (oscillatorR) {
-                oscillatorR.stop(audioContext.currentTime);
-                oscillatorR.disconnect();
-                oscillatorR = null;
-            }
-            if (pinkNoiseSource) {
-                pinkNoiseSource.stop(audioContext.currentTime);
-                pinkNoiseSource.disconnect();
-                pinkNoiseSource = null;
-            }
-
-            if (externalAudioSource) {
-                clearInterval(timerInterval);
-                isPlaying = false;
-                
-                statusDiv.textContent = 'Program Sukses !!! Audio Eksternal Berlanjut...';
-                
-                pauseBtn.disabled = true; 
-                playBtn.disabled = true;
-            } else {
-                stopAudio(); 
-                statusDiv.textContent = 'Program Brainwave Selesai. Selamat!';
-            }
-            
-            timerDiv.textContent = `Durasi ${formatDuration(sbgDuration)} / ${formatDuration(sbgDuration)}`;
-            
-        } else {
-            const formattedTime = formatDuration(elapsedTime);
-            const formattedDuration = formatDuration(totalDuration);
-            timerDiv.textContent = `Mulai ${formattedTime} / ${formattedDuration}`;
-            
+        if (sbgData && sbgData.events.length) {
             let currentEvent = sbgData.events[0];
             for (let i = 0; i < sbgData.events.length; i++) {
                 if (sbgData.events[i].time <= elapsedTime) {
@@ -445,13 +705,21 @@ NOW electrofield
             
             const preset = sbgData.presets[currentEvent.preset];
             if (preset) {
-                statusDiv.textContent = `Frekuensi saat ini: ${preset.freqL.toFixed(2)} Hz / ${preset.freqR.toFixed(2)} Hz`;
+                statusDiv.textContent = `Frekuensi: ${preset.freqL.toFixed(2)} Hz / ${preset.freqR.toFixed(2)} Hz`;
             }
+        } else if (externalAudioBuffer) {
+             statusDiv.textContent = `MEMUTAR AUDIO EKSTERNAL (${externalFileName})...`;
         }
+    }
+    
+    function formatDuration(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+        return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
     }
 
     function startAudio() {
-        if (!sbgData || isPlaying) {
+        if ((!sbgData && !externalAudioBuffer) || isPlaying) {
             return;
         }
 
@@ -462,120 +730,114 @@ NOW electrofield
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
         }
         audioContext.resume().then(() => {
+            
             const masterGain = audioContext.createGain();
-            masterGain.gain.setValueAtTime(MASTER_VOLUME, audioContext.currentTime); 
-            masterGain.connect(audioContext.destination);
-
-            const startTime = audioContext.currentTime;
+            masterGain.gain.setValueAtTime(0.5, audioContext.currentTime);
             
             if (externalAudioBuffer) {
-                externalAudioLoopSources = [];
-                
                 externalAudioSource = audioContext.createBufferSource();
                 externalAudioSource.buffer = externalAudioBuffer;
                 
-                externalAudioSource.connect(masterGain); 
+                if (!externalGainNode) {
+                    externalGainNode = audioContext.createGain();
+                    externalGainNode.gain.setValueAtTime(1.0, audioContext.currentTime); 
+                    externalGainNode.connect(audioContext.destination);
+                }
                 
-                const offset = pauseOffset;
-                const externalAudioDuration = externalAudioBuffer.duration;
-                const stopPoint = startTime + sbgDuration - offset; 
-                const totalDurationNeeded = sbgDuration - offset;
-                const numLoops = Math.ceil(totalDurationNeeded / externalAudioDuration);
+                externalAudioSource.connect(externalGainNode);
                 
-                let currentStartTime = 0; 
-                let currentOffset = offset;
+                const startOffset = pauseOffset % externalAudioBuffer.duration;
                 
-                for (let i = 0; i < numLoops; i++) {
-                    const durationToPlay = Math.min(externalAudioDuration - currentOffset, totalDurationNeeded - currentStartTime);
+                const isExternalLoopingToFillTime = (totalDuration > externalAudioBuffer.duration); 
+                
+                if (isExternalLoopingToFillTime) {
+                    externalAudioSource.loop = true;
+                    externalAudioSource.loopEnd = externalAudioBuffer.duration; 
+                    externalAudioSource.start(0, startOffset); 
+
+                } else {
+                    externalAudioSource.start(0, startOffset); 
+                }
+            }
+
+            masterGain.connect(audioContext.destination);
+
+            if (sbgData) {
+                oscillatorL = audioContext.createOscillator();
+                oscillatorR = audioContext.createOscillator();
+                
+                const gainL = audioContext.createGain();
+                const gainR = audioContext.createGain();
+                const pannerL = audioContext.createStereoPanner();
+                const pannerR = audioContext.createStereoPanner();
+                pannerL.pan.setValueAtTime(-1, audioContext.currentTime);
+                pannerR.pan.setValueAtTime(1, audioContext.currentTime);
+                
+                let pinkNoiseGain = null;
+                const isPinkNoiseEnabled = pinkNoiseToggle.checked;
+                
+                if (isPinkNoiseEnabled) {
+                    const firstPreset = sbgData.presets[sbgData.events[0].preset];
+                    if (firstPreset && firstPreset.noiseType === 'pink') {
+                        pinkNoiseSource = audioContext.createBufferSource();
+                        pinkNoiseSource.buffer = createPinkNoiseBuffer(audioContext, PINK_NOISE_BUFFER_DURATION); 
                     
-                    if (durationToPlay > 0) {
-                        const startPoint = startTime + currentStartTime;
+                        pinkNoiseSource.loop = true; 
+                        pinkNoiseGain = audioContext.createGain();
                         
-                        let sourceToSchedule;
+                        pinkNoiseSource.connect(pinkNoiseGain);
+                        pinkNoiseGain.connect(masterGain);
                         
-                        if (i === 0) {
-                            sourceToSchedule = externalAudioSource; 
-                            sourceToSchedule.start(startPoint, currentOffset); 
-                        } else {
-                            sourceToSchedule = audioContext.createBufferSource();
-                            sourceToSchedule.buffer = externalAudioBuffer;
-                            sourceToSchedule.connect(masterGain);
-                            
-                            sourceToSchedule.start(startPoint, 0); 
-                            
-                            externalAudioLoopSources.push(sourceToSchedule); 
-                        }
-                        
-                        sourceToSchedule.stop(stopPoint); 
-                        
-                        currentStartTime += durationToPlay;
-                        currentOffset = 0; 
+                        const startOffset = pauseOffset % pinkNoiseSource.buffer.duration;
+                        pinkNoiseSource.start(0, startOffset);
                     }
                 }
                 
-                externalAudioSource.onended = () => {};
-            }
-            
-            
-            oscillatorL = audioContext.createOscillator();
-            oscillatorR = audioContext.createOscillator();
-            
-            const gainL = audioContext.createGain();
-            const gainR = audioContext.createGain();
-            const pannerL = audioContext.createStereoPanner();
-            const pannerR = audioContext.createStereoPanner();
-            pannerL.pan.setValueAtTime(-1, audioContext.currentTime);
-            pannerR.pan.setValueAtTime(1, audioContext.currentTime);
-            
-            let pinkNoiseGain = null;
-            const isPinkNoiseEnabled = pinkNoiseToggle.checked;
-            
-            if (isPinkNoiseEnabled) {
-                const firstPreset = sbgData.presets[sbgData.events[0].preset];
-                if (firstPreset && firstPreset.noiseType === 'pink') {
-                    pinkNoiseSource = audioContext.createBufferSource();
-                    pinkNoiseSource.buffer = createPinkNoiseBuffer(audioContext, sbgDuration); 
-                    pinkNoiseSource.loop = loopToggle.checked; 
-                    
-                    pinkNoiseGain = audioContext.createGain(); 
-                    pinkNoiseSource.connect(pinkNoiseGain);
-                    pinkNoiseGain.connect(masterGain);
-                    pinkNoiseSource.start(0, pauseOffset);
-                }
-            }
-            
-            oscillatorL.type = 'sine';
-            oscillatorR.type = 'sine';
-            
-            oscillatorL.connect(gainL);
-            gainL.connect(pannerL);
-            pannerL.connect(masterGain);
-            oscillatorR.connect(gainR);
-            gainR.connect(pannerR);
-            pannerR.connect(masterGain);
+                oscillatorL.type = 'sine';
+                oscillatorR.type = 'sine';
+                
+                oscillatorL.connect(gainL);
+                gainL.connect(pannerL);
+                pannerL.connect(masterGain);
+                oscillatorR.connect(gainR);
+                gainR.connect(pannerR);
+                pannerR.connect(masterGain);
 
-            sbgData.events.forEach(event => {
-                const preset = sbgData.presets[event.preset];
-                const scheduledTime = startTime + event.time - pauseOffset;
+                const startTime = audioContext.currentTime;
+                
+                sbgData.events.forEach(event => {
+                    const preset = sbgData.presets[event.preset];
+                    const scheduledTime = startTime + event.time - pauseOffset; 
 
-                if (scheduledTime >= startTime) {
                     if (preset) {
-                        gainL.gain.linearRampToValueAtTime(preset.toneVol, scheduledTime);
-                        gainR.gain.linearRampToValueAtTime(preset.toneVol, scheduledTime);
-                        oscillatorL.frequency.linearRampToValueAtTime(preset.freqL, scheduledTime);
-                        oscillatorR.frequency.linearRampToValueAtTime(preset.freqR, scheduledTime);
-                        
-                        if (pinkNoiseGain) {
-                            pinkNoiseGain.gain.linearRampToValueAtTime(preset.noiseVol, scheduledTime);
+                        if (scheduledTime >= audioContext.currentTime) {
+                            gainL.gain.linearRampToValueAtTime(preset.toneVol, scheduledTime);
+                            gainR.gain.linearRampToValueAtTime(preset.toneVol, scheduledTime);
+                            oscillatorL.frequency.linearRampToValueAtTime(preset.freqL, scheduledTime);
+                            oscillatorR.frequency.linearRampToValueAtTime(preset.freqR, scheduledTime);
+                            if (pinkNoiseGain) {
+                                pinkNoiseGain.gain.linearRampToValueAtTime(preset.noiseVol, scheduledTime);
+                            }
+                        } else if (event.time > 0 && scheduledTime < audioContext.currentTime) {
+                            gainL.gain.setValueAtTime(preset.toneVol, audioContext.currentTime);
+                            gainR.gain.setValueAtTime(preset.toneVol, audioContext.currentTime);
+                            oscillatorL.frequency.setValueAtTime(preset.freqL, audioContext.currentTime);
+                            oscillatorR.frequency.setValueAtTime(preset.freqR, audioContext.currentTime);
+                            if (pinkNoiseGain) {
+                                pinkNoiseGain.gain.setValueAtTime(preset.noiseVol, audioContext.currentTime);
+                            }
                         }
                     }
-                }
-            });
+                });
 
-            oscillatorL.start(startTime, pauseOffset);
-            oscillatorR.start(startTime, pauseOffset);
-            
-            playStartTime = Date.now();
+                oscillatorL.start(startTime);
+                oscillatorR.start(startTime);
+                
+                oscillatorL.stop(startTime + totalDuration - pauseOffset); 
+                oscillatorR.stop(startTime + totalDuration - pauseOffset);
+            }
+
+            playStartTime = Date.now() - (pauseOffset * 1000);
             timerInterval = setInterval(updateStatusAndTimer, 1000);
             
             playBtn.disabled = true;
@@ -587,56 +849,66 @@ NOW electrofield
     }
 
     function stopAudio() {
-        if (!isPlaying && !isPaused && !externalAudioSource) {
-            return;
-        }
+        isPlaying = false;
+        isPaused = false;
+        if (timerInterval) clearInterval(timerInterval);
         
         if (oscillatorL) {
-            oscillatorL.stop();
+            try {
+                oscillatorL.stop();
+            } catch (e) {} 
             oscillatorL.disconnect();
             oscillatorL = null;
         }
         if (oscillatorR) {
-            oscillatorR.stop();
+            try {
+                oscillatorR.stop();
+            } catch (e) {}
             oscillatorR.disconnect();
             oscillatorR = null;
         }
         if (pinkNoiseSource) {
-            pinkNoiseSource.stop();
-            pinkNoiseSource.disconnect();
+            if (audioContext && audioContext.state !== 'closed') {
+                try {
+                    pinkNoiseSource.stop(audioContext.currentTime); 
+                } catch (e) {
+                    console.warn("Gagal menghentikan pinkNoiseSource:", e);
+                }
+                pinkNoiseSource.disconnect();
+            }
             pinkNoiseSource = null;
         }
-
+        
         if (externalAudioSource) {
-            externalAudioSource.stop();
+            try {
+                externalAudioSource.stop();
+            } catch (e) {} 
             externalAudioSource.disconnect();
             externalAudioSource = null;
         }
         
-        externalAudioLoopSources.forEach(source => {
-            if (source) {
-                source.stop();
-                source.disconnect();
-            }
-        });
-        externalAudioLoopSources = []; 
-
-        if (audioContext && audioContext.state !== 'closed') {
-            audioContext.close();
+        if (externalGainNode) {
+            externalGainNode.disconnect();
+            externalGainNode = null;
         }
-
-        isPlaying = false;
-        isPaused = false;
-        clearInterval(timerInterval);
-        timerDiv.textContent = `Selesai 00:00 / ${formatDuration(totalDuration)}`;
-        statusDiv.textContent = 'Selamat Program Anda Berjalan Sukses !!!';
-        playBtn.disabled = false;
-        playBtn.style.display = 'inline-block';
-        pauseBtn.disabled = true;
-        pauseBtn.style.display = 'none';
-        stopBtn.disabled = true;
-        pauseBtn.textContent = 'Pause ⏸️';
-        pauseOffset = 0;
+        
+        if (audioContext && audioContext.state !== 'closed') {
+            const closePromise = audioContext.close();
+            audioContext = null; 
+            
+            closePromise.then(() => {
+                pauseOffset = 0;
+                initializeInternalSbg();
+            }).catch(e => {
+                console.error("Gagal menutup AudioContext saat Stop:", e);
+                pauseOffset = 0;
+                initializeInternalSbg();
+            });
+            
+        } else {
+            pauseOffset = 0;
+            initializeInternalSbg();
+        }
     }
 
     function pauseAudio() {
@@ -644,10 +916,10 @@ NOW electrofield
             isPlaying = false;
             isPaused = true;
             audioContext.suspend().then(() => {
-                pauseBtn.textContent = 'Resume ⏯️';
-                statusDiv.textContent = 'Pemutaran dijeda';
+                pauseBtn.textContent = '▶ LANJUTKAN';
+                statusDiv.textContent = 'Pemutaran DIJEDA';
                 clearInterval(timerInterval);
-                pauseOffset = (Date.now() - playStartTime) / 1000 + pauseOffset;
+                pauseOffset = (Date.now() - playStartTime) / 1000;
             });
         }
     }
@@ -657,148 +929,61 @@ NOW electrofield
             isPlaying = true;
             isPaused = false;
             audioContext.resume().then(() => {
-                pauseBtn.textContent = 'Pause ⏸️';
-                statusDiv.textContent = 'Melanjutkan pemutaran...';
-                playStartTime = Date.now();
+                pauseBtn.textContent = '⏸ JEDA';
+                statusDiv.textContent = 'MELANJUTKAN PEMUTARAN...';
+                playStartTime = Date.now() - (pauseOffset * 1000); 
                 timerInterval = setInterval(updateStatusAndTimer, 1000);
             });
         }
     }
-
-    function renderAudioForDownload(duration) {
-        const sampleRate = 44100;
-        const offlineCtx = new OfflineAudioContext(2, duration * sampleRate, sampleRate);
-
-        const masterGain = offlineCtx.createGain();
-        masterGain.gain.setValueAtTime(MASTER_VOLUME, offlineCtx.currentTime); 
-        masterGain.connect(offlineCtx.destination);
-
-        const startTime = offlineCtx.currentTime;
-
-        if (externalAudioBuffer) {
-            const externalAudioDuration = externalAudioBuffer.duration;
-            const totalDurationNeeded = duration; 
-            const numLoops = Math.ceil(totalDurationNeeded / externalAudioDuration);
-            
-            let currentStartTime = 0; 
-            
-            for (let i = 0; i < numLoops; i++) {
-                const durationToPlay = Math.min(externalAudioDuration, totalDurationNeeded - currentStartTime);
-                
-                if (durationToPlay > 0) {
-                    const startPoint = startTime + currentStartTime;
-                    const stopPoint = startTime + duration;
-                    
-                    const externalDownloadSource = offlineCtx.createBufferSource();
-                    externalDownloadSource.buffer = externalAudioBuffer;
-                    externalDownloadSource.loop = false;
-                    externalDownloadSource.connect(masterGain); 
-                    
-                    externalDownloadSource.start(startPoint, 0, durationToPlay);
-                    externalDownloadSource.stop(stopPoint);
-                    
-                    currentStartTime += durationToPlay;
-                }
+    
+    function findPresetBeforeTime(sbgData, time) {
+        let activePreset = sbgData.presets['alloff']; 
+        
+        for (const event of sbgData.events) {
+            if (event.time <= time) {
+                activePreset = sbgData.presets[event.preset];
+            } else {
+                break;
             }
         }
-
-        
-        const oscillatorL = offlineCtx.createOscillator();
-        const oscillatorR = offlineCtx.createOscillator();
-
-        const gainL = offlineCtx.createGain();
-        const gainR = offlineCtx.createGain();
-        const pannerL = offlineCtx.createStereoPanner();
-        const pannerR = offlineCtx.createStereoPanner();
-        pannerL.pan.setValueAtTime(-1, offlineCtx.currentTime);
-        pannerR.pan.setValueAtTime(1, offlineCtx.currentTime);
-
-        let pinkNoiseSource = null;
-        let pinkNoiseGain = null;
-        if (pinkNoiseToggle.checked) {
-            pinkNoiseSource = offlineCtx.createBufferSource();
-            pinkNoiseSource.buffer = createPinkNoiseBuffer(offlineCtx, duration); 
-            pinkNoiseSource.loop = false; 
-            pinkNoiseGain = offlineCtx.createGain();
-            pinkNoiseSource.connect(pinkNoiseGain);
-            pinkNoiseGain.connect(masterGain);
-            pinkNoiseSource.start(0);
-        }
-
-        oscillatorL.type = 'sine';
-        oscillatorR.type = 'sine';
-        oscillatorL.connect(gainL);
-        gainL.connect(pannerL);
-        pannerL.connect(masterGain);
-        oscillatorR.connect(gainR);
-        gainR.connect(pannerR);
-        pannerR.connect(masterGain);
-
-        
-        sbgData.events.forEach(event => {
-            const preset = sbgData.presets[event.preset];
-            const scheduledTime = startTime + event.time;
-
-            if (preset) {
-                gainL.gain.linearRampToValueAtTime(preset.toneVol, scheduledTime);
-                gainR.gain.linearRampToValueAtTime(preset.toneVol, scheduledTime);
-                oscillatorL.frequency.linearRampToValueAtTime(preset.freqL, scheduledTime);
-                oscillatorR.frequency.linearRampToValueAtTime(preset.freqR, scheduledTime);
-                if (pinkNoiseSource) {
-                    pinkNoiseGain.gain.linearRampToValueAtTime(preset.noiseVol, scheduledTime);
-                }
-            }
-        });
-
-        
-        oscillatorL.start(startTime);
-        oscillatorR.start(startTime);
-        oscillatorL.stop(duration);
-        oscillatorR.stop(duration);
-        if (pinkNoiseSource) {
-            pinkNoiseSource.stop(duration);
-        }
-        
-        return offlineCtx.startRendering();
+        return activePreset;
     }
 
-
-    function audioBufferToWavBlob(audioBuffer) {
-        const numOfChan = audioBuffer.numberOfChannels;
-        const totalLength = audioBuffer.length * numOfChan * 2 + 44;
-        const samples = new Int16Array(audioBuffer.length * numOfChan);
-        
-        for (let i = 0; i < audioBuffer.length; i++) {
-            for (let channel = 0; channel < numOfChan; channel++) {
-                const sample = audioBuffer.getChannelData(channel)[i];
-                const intSample = Math.max(-1, Math.min(1, sample)) * 32767;
-                samples[i * numOfChan + channel] = intSample;
-            }
-        }
-
-        const buffer = new ArrayBuffer(totalLength);
+    function createWavHeaderBlob(totalDataLength, sampleRate, numOfChan) {
+        const totalLength = totalDataLength + 44;
+        const buffer = new ArrayBuffer(44);
         const view = new DataView(buffer);
 
         writeString(view, 0, 'RIFF');
-        view.setUint32(4, 36 + samples.length * 2, true);
+        view.setUint32(4, 36 + totalDataLength, true); 
         writeString(view, 8, 'WAVE');
         writeString(view, 12, 'fmt ');
         view.setUint32(16, 16, true);
         view.setUint16(20, 1, true);
         view.setUint16(22, numOfChan, true);
-        view.setUint32(24, audioBuffer.sampleRate, true);
-        view.setUint32(28, audioBuffer.sampleRate * 2 * numOfChan, true);
-        view.setUint16(32, numOfChan * 2, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, sampleRate * 2 * numOfChan, true); 
+        view.setUint16(32, numOfChan * 2, true); 
         view.setUint16(34, 16, true);
         writeString(view, 36, 'data');
-        view.setUint32(40, samples.length * 2, true);
+        view.setUint32(40, totalDataLength, true); 
 
-        let offset = 44;
-        for (let i = 0; i < samples.length; i++, offset += 2) {
-            view.setInt16(offset, samples[i], true);
+        return new Blob([view]);
+    }
+
+    function audioBufferToRawData(audioBuffer) {
+        const numOfChan = audioBuffer.numberOfChannels;
+        const samples = new Int16Array(audioBuffer.length * numOfChan);
+        
+        for (let i = 0; i < audioBuffer.length; i++) {
+            for (let channel = 0; channel < numOfChan; channel++) {
+                const sample = audioBuffer.getChannelData(channel)[i];
+                const intSample = Math.max(-1, Math.min(1, sample)) * 32767; 
+                samples[i * numOfChan + channel] = intSample;
+            }
         }
-
-        return new Blob([view], { type: 'audio/wav' });
+        return samples.buffer; 
     }
 
     function writeString(view, offset, string) {
@@ -806,38 +991,246 @@ NOW electrofield
             view.setUint8(offset + i, string.charCodeAt(i));
         }
     }
+    
+    function renderAudioForDownload(startTime, duration, channelToRender) {
+        const sampleRate = 44100;
+        const numOfChan = 2;
+        const offlineCtx = new OfflineAudioContext(numOfChan, Math.ceil(duration * sampleRate), sampleRate); 
+        
+        const masterGain = offlineCtx.createGain();
+        masterGain.gain.setValueAtTime(0.5, offlineCtx.currentTime);
+        
+        masterGain.connect(offlineCtx.destination);
 
-    function loadSbgData() {
-        try {
-            sbgData = parseSbg(sbgContentToLoad);
-            if (sbgData && sbgData.events.length > 0) {
-                sbgDuration = sbgData.events[sbgData.events.length - 1].time;
-                totalDuration = sbgDuration;
-                timerDiv.textContent = `Durasi 00:00 / ${formatDuration(totalDuration)}`;
-                statusDiv.textContent = `Memuat Audio Eksternal...`; 
-                playBtn.disabled = true; 
-                downloadBtn.disabled = false;
-            } else {
-                statusDiv.textContent = 'Gagal memproses file .sbg. Skylord Menolak Akses Anda';
-                playBtn.disabled = true;
-                downloadBtn.disabled = true;
+        if (sbgData) {
+            const oscillatorL = offlineCtx.createOscillator();
+            const oscillatorR = offlineCtx.createOscillator();
+            const gainL = offlineCtx.createGain();
+            const gainR = offlineCtx.createGain();
+            
+            let pinkNoiseGain = null;
+            let pinkNoiseSource = null;
+            const isPinkNoiseEnabled = pinkNoiseToggle.checked;
+            
+            if (isPinkNoiseEnabled) {
+                pinkNoiseSource = offlineCtx.createBufferSource();
+                pinkNoiseSource.buffer = createPinkNoiseBuffer(offlineCtx, duration);
+                pinkNoiseSource.loop = true;
+                pinkNoiseGain = offlineCtx.createGain(); 
+                pinkNoiseSource.connect(pinkNoiseGain);
+                pinkNoiseGain.connect(masterGain);
+                pinkNoiseSource.start(0); 
             }
-        } catch (error) {
-            statusDiv.textContent = `Terjadi kesalahan saat memproses data: ${error.message}`;
-            playBtn.disabled = true;
-            downloadBtn.disabled = true;
+
+            oscillatorL.type = 'sine';
+            oscillatorR.type = 'sine';
+            
+            if (channelToRender === 'left' || channelToRender === 'stereo') {
+                const pannerL = offlineCtx.createStereoPanner();
+                pannerL.pan.setValueAtTime(-1, offlineCtx.currentTime); 
+                oscillatorL.connect(gainL);
+                gainL.connect(pannerL);
+                pannerL.connect(masterGain);
+            }
+            
+            if (channelToRender === 'right' || channelToRender === 'stereo') {
+                const pannerR = offlineCtx.createStereoPanner();
+                pannerR.pan.setValueAtTime(1, offlineCtx.currentTime);
+                oscillatorR.connect(gainR);
+                gainR.connect(pannerR);
+                pannerR.connect(masterGain);
+            }
+            
+            const contextStartTime = offlineCtx.currentTime;
+            
+            const initialPreset = findPresetBeforeTime(sbgData, startTime);
+            if (initialPreset) {
+                if (channelToRender === 'left' || channelToRender === 'stereo') {
+                    gainL.gain.setValueAtTime(initialPreset.toneVol, contextStartTime);
+                    oscillatorL.frequency.setValueAtTime(initialPreset.freqL, contextStartTime);
+                }
+                if (channelToRender === 'right' || channelToRender === 'stereo') {
+                    gainR.gain.setValueAtTime(initialPreset.toneVol, contextStartTime);
+                    oscillatorR.frequency.setValueAtTime(initialPreset.freqR, contextStartTime);
+                }
+                if (pinkNoiseGain) {
+                    pinkNoiseGain.gain.setValueAtTime(initialPreset.noiseVol, contextStartTime);
+                }
+            }
+
+            sbgData.events.forEach(event => {
+                const absoluteEventTime = event.time; 
+                const scheduledTime = contextStartTime + (absoluteEventTime - startTime);
+                
+                if (absoluteEventTime > startTime && absoluteEventTime < startTime + duration) {
+                    const preset = sbgData.presets[event.preset];
+                    if (preset) {
+                        if (channelToRender === 'left' || channelToRender === 'stereo') {
+                            gainL.gain.linearRampToValueAtTime(preset.toneVol, scheduledTime);
+                            oscillatorL.frequency.linearRampToValueAtTime(preset.freqL, scheduledTime);
+                        }
+                        if (channelToRender === 'right' || channelToRender === 'stereo') {
+                            gainR.gain.linearRampToValueAtTime(preset.toneVol, scheduledTime);
+                            oscillatorR.frequency.linearRampToValueAtTime(preset.freqR, scheduledTime);
+                        }
+                        
+                        if (pinkNoiseSource) {
+                            pinkNoiseGain.gain.linearRampToValueAtTime(preset.noiseVol, scheduledTime);
+                        }
+                    }
+                }
+            });
+            
+            oscillatorL.start(contextStartTime);
+            oscillatorR.start(contextStartTime);
+            oscillatorL.stop(contextStartTime + duration); 
+            oscillatorR.stop(contextStartTime + duration);
         }
         
-        loadExternalAudio();
+        if (channelToRender === 'stereo' && externalAudioBuffer) {
+            const externalSource = offlineCtx.createBufferSource();
+            externalSource.buffer = externalAudioBuffer;
+            
+            if (totalDuration > externalAudioBuffer.duration) {
+                externalSource.loop = true;
+            }
+            
+            const externalGain = offlineCtx.createGain();
+            externalGain.gain.setValueAtTime(1.0, offlineCtx.currentTime); 
+            
+            externalSource.connect(externalGain);
+            externalGain.connect(masterGain);
+            
+            const startOffset = startTime % externalAudioBuffer.duration;
+            
+            externalSource.start(0, startOffset);
+            externalSource.stop(offlineCtx.currentTime + duration);
+        }
+
+        return offlineCtx.startRendering();
     }
     
-    submitPasswordBtn.addEventListener('click', checkPassword);
-    passwordInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            checkPassword();
+    function renderPinkNoiseForDownload(startTime, duration) {
+        const sampleRate = 44100;
+        const offlineCtx = new OfflineAudioContext(2, Math.ceil(duration * sampleRate), sampleRate);
+        
+        const masterGain = offlineCtx.createGain();
+        masterGain.gain.setValueAtTime(0.5, offlineCtx.currentTime);
+        
+        const pinkNoiseSource = offlineCtx.createBufferSource();
+        pinkNoiseSource.buffer = createPinkNoiseBuffer(offlineCtx, duration);
+        pinkNoiseSource.loop = true;
+        
+        const pinkNoiseGain = offlineCtx.createGain();
+        pinkNoiseSource.connect(pinkNoiseGain);
+        pinkNoiseGain.connect(masterGain);
+        masterGain.connect(offlineCtx.destination);
+        
+        const contextStartTime = offlineCtx.currentTime;
+        
+        const initialPreset = findPresetBeforeTime(sbgData, startTime);
+        if (initialPreset) {
+            pinkNoiseGain.gain.setValueAtTime(initialPreset.noiseVol, contextStartTime);
         }
-    });
+        
+        if (sbgData && sbgData.events) {
+            sbgData.events.forEach(event => {
+                const absoluteEventTime = event.time; 
+                const scheduledTime = contextStartTime + (absoluteEventTime - startTime);
 
+                if (absoluteEventTime > startTime && absoluteEventTime < startTime + duration) {
+                    const preset = sbgData.presets[event.preset];
+                    if (preset) {
+                        pinkNoiseGain.gain.linearRampToValueAtTime(preset.noiseVol, scheduledTime);
+                    }
+                }
+            });
+        }
+
+        pinkNoiseSource.start(contextStartTime);
+        pinkNoiseSource.stop(contextStartTime + duration);
+
+        return offlineCtx.startRendering();
+    }
+    
+    function resetUiAndInitialize() {
+        playBtn.disabled = true;
+        pauseBtn.disabled = true;
+        stopBtn.disabled = true;
+        downloadLBtn.disabled = true;
+        downloadRBtn.disabled = true;
+        downloadStereoBtn.disabled = true;
+        downloadPinkNoiseBtn.disabled = true;
+        
+        initializeInternalSbg(); 
+    }
+    
+    function initializeInternalSbg() {
+        
+        statusDiv.textContent = 'MENGINISIALISASI ULANG KONSOL...';
+
+        if (!audioContext || audioContext.state === 'closed') {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        fetchExternalAudio(AUTO_LOAD_WAV_FILE, audioContext).then(() => {
+            try {
+                sbgData = parseSbg(INTERNAL_SBG_CONTENT);
+
+                if (sbgData && sbgData.events.length > 0) {
+                    let newTotalDuration = sbgData.events[sbgData.events.length - 1].time + 0.01;
+                    
+                    if (externalAudioBuffer && externalAudioBuffer.duration > newTotalDuration) {
+                        newTotalDuration = externalAudioBuffer.duration;
+                    }
+                    
+                    totalDuration = newTotalDuration;
+
+                    timerDiv.textContent = `DURASI 00:00 / ${formatDuration(totalDuration)}`;
+                    statusDiv.textContent = `PROGRAM '${sbgNameInput.value}' READY. (Starter: ${externalAudioBuffer ? 'DITERIMA' : 'TIDAK ADA'})`;
+                    
+                    playBtn.disabled = false;
+                    playBtn.style.display = 'inline-block';
+                    pauseBtn.disabled = true;
+                    pauseBtn.style.display = 'none';
+                    stopBtn.disabled = true;
+
+                    downloadLBtn.disabled = false;
+                    downloadRBtn.disabled = false;
+                    downloadStereoBtn.disabled = false;
+                    downloadPinkNoiseBtn.disabled = false;
+                    
+                } else {
+                    if (externalAudioBuffer) {
+                        totalDuration = externalAudioBuffer.duration;
+                        timerDiv.textContent = `DURASI 00:00 / ${formatDuration(totalDuration)}`;
+                        statusDiv.textContent = `Hanya Audio Eksternal (${externalFileName}) SIAP. KLIK PLAY SEKARANG.`;
+                        
+                        playBtn.disabled = false;
+                        playBtn.style.display = 'inline-block';
+                        pauseBtn.disabled = true;
+                        pauseBtn.style.display = 'none';
+                        stopBtn.disabled = true;
+
+                        downloadLBtn.disabled = true;
+                        downloadRBtn.disabled = true;
+                        downloadStereoBtn.disabled = false; 
+                        downloadPinkNoiseBtn.disabled = true;
+                    } else {
+                        statusDiv.textContent = 'Gagal memproses data SBG & tidak ada audio eksternal yang dimuat.';
+                        playBtn.disabled = true;
+                        stopBtn.disabled = true;
+                    }
+                }
+            } catch (error) {
+                statusDiv.textContent = `Kesalahan pemrosesan SBG internal: ${error.message}`;
+                playBtn.disabled = true;
+                stopBtn.disabled = true;
+            }
+        });
+    }
+
+    
     playBtn.addEventListener('click', startAudio);
     stopBtn.addEventListener('click', stopAudio);
     
@@ -848,45 +1241,173 @@ NOW electrofield
             pauseAudio();
         }
     });
-    
-    downloadBtn.addEventListener('click', () => {
-        if (!sbgData || sbgData.events.length === 0) {
-            statusDiv.textContent = 'Tidak ada file untuk diunduh.';
-            return;
-        }
 
-        statusDiv.textContent = 'Skylord Membuat File Audio Mix, Mohon Tunggu...';
-        playBtn.disabled = true;
-        pauseBtn.disabled = true;
-        stopBtn.disabled = true;
-        downloadBtn.disabled = true;
+    loopToggle.addEventListener('change', (event) => {
+        isLooping = event.target.checked;
         
+        if (isPlaying || isPaused) {
+            stopAudio(); 
+        }
+    });
+    
+    pinkNoiseToggle.addEventListener('change', () => {
         if (isPlaying || isPaused) {
             stopAudio();
         }
-
-        renderAudioForDownload(totalDuration) 
-            .then(audioBuffer => {
-                const wavBlob = audioBufferToWavBlob(audioBuffer);
-                const url = URL.createObjectURL(wavBlob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'vibrasi-mix-alpha.wav'; 
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-
-                statusDiv.textContent = 'File .wav Mix Berhasil Dibuat Oleh Skylord dan Siap Diunduh!';
-                playBtn.disabled = false;
-                downloadBtn.disabled = false;
-            })
-            .catch(error => {
-                statusDiv.textContent = `Terjadi kesalahan saat membuat file audio: ${error.message}`;
-                playBtn.disabled = false;
-                downloadBtn.disabled = false;
-            });
     });
+    
+    downloadLBtn.addEventListener('click', () => downloadAudio('left'));
+    downloadRBtn.addEventListener('click', () => downloadAudio('right'));
+    downloadStereoBtn.addEventListener('click', () => downloadAudio('stereo'));
+    downloadPinkNoiseBtn.addEventListener('click', () => downloadPinkNoise());
+    
+    async function downloadPinkNoise() {
+        if (!sbgData || sbgData.events.length === 0) {
+            statusDiv.textContent = 'Tidak ada data .sbg untuk diunduh.';
+            return;
+        }
+        
+        let fileName = 'pink-noise-skylord.wav';
+
+        statusDiv.textContent = `SKYLORD MEMBUAT PINK NOISE (${fileName}), MOHON TUNGGU...`;
+        
+        playBtn.disabled = true;
+        pauseBtn.disabled = true;
+        stopBtn.disabled = true;
+        downloadLBtn.disabled = true;
+        downloadRBtn.disabled = true;
+        downloadStereoBtn.disabled = true;
+        downloadPinkNoiseBtn.disabled = true;
+        
+        if (isPlaying || isPaused) {
+            stopAudio(); 
+        }
+        
+        const totalSegments = Math.ceil(totalDuration / SEGMENT_DURATION);
+        const blobSegments = []; 
+        let totalDataLength = 0;
+        const sampleRate = 44100;
+        const numOfChan = 2; 
+
+        try {
+            for (let i = 0; i < totalSegments; i++) {
+                const segmentStartTime = i * SEGMENT_DURATION;
+                let segmentDuration = SEGMENT_DURATION; 
+                if (segmentStartTime + segmentDuration > totalDuration) {
+                    segmentDuration = totalDuration - segmentStartTime;
+                }
+                
+                statusDiv.textContent = `RENDERING PINK NOISE SEGMENT ${i + 1} DARI ${totalSegments} (${((i + 1) / totalSegments * 100).toFixed(0)}%)...`;
+
+                const segmentBuffer = await renderPinkNoiseForDownload(segmentStartTime, segmentDuration);
+                
+                const rawData = audioBufferToRawData(segmentBuffer); 
+                blobSegments.push(new Blob([rawData]));
+                totalDataLength += rawData.byteLength;
+            }
+            
+            statusDiv.textContent = 'MENGGABUNGKAN SEGMEN PINK NOISE...';
+            
+            const wavHeaderBlob = createWavHeaderBlob(totalDataLength, sampleRate, numOfChan);
+
+            const finalBlobParts = [wavHeaderBlob, ...blobSegments];
+            const finalWavBlob = new Blob(finalBlobParts, { type: 'audio/wav' });
+
+            const url = URL.createObjectURL(finalWavBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            statusDiv.textContent = `FILE ${fileName} BERHASIL DIBUAT OLEH SKYLORD DAN SIAP DIUNDUH!`;
+
+        } catch (error) {
+            statusDiv.textContent = `Terjadi kesalahan saat membuat file pink noise: ${error.message}`;
+        } finally {
+            resetUiAndInitialize();
+        }
+    }
+
+
+    async function downloadAudio(channel) {
+        if (!sbgData && !externalAudioBuffer) {
+            statusDiv.textContent = 'Tidak ada data untuk diunduh.';
+            return;
+        }
+
+        let fileName = 'vibrasi-audio-stereo.wav';
+        if (channel === 'left') {
+            fileName = 'vibrasi-audio-kiri.wav';
+        } else if (channel === 'right') {
+            fileName = 'vibrasi-audio-kanan.wav';
+        }
+
+        statusDiv.textContent = `SKYLORD MEMBUAT FILE AUDIO (${fileName}), MOHON TUNGGU...`;
+        playBtn.disabled = true;
+        pauseBtn.disabled = true;
+        stopBtn.disabled = true;
+        downloadLBtn.disabled = true;
+        downloadRBtn.disabled = true;
+        downloadStereoBtn.disabled = true;
+        downloadPinkNoiseBtn.disabled = true;
+        
+        if (isPlaying || isPaused) {
+            stopAudio(); 
+        }
+        
+        const totalSegments = Math.ceil(totalDuration / SEGMENT_DURATION);
+        const blobSegments = []; 
+        let totalDataLength = 0;
+        const sampleRate = 44100;
+        const numOfChan = 2; 
+
+        try {
+            for (let i = 0; i < totalSegments; i++) {
+                const segmentStartTime = i * SEGMENT_DURATION;
+                let segmentDuration = SEGMENT_DURATION; 
+                if (segmentStartTime + segmentDuration > totalDuration) {
+                    segmentDuration = totalDuration - segmentStartTime;
+                }
+                
+                statusDiv.textContent = `RENDERING SEGMENT ${i + 1} DARI ${totalSegments} (${((i + 1) / totalSegments * 100).toFixed(0)}%)...`;
+
+                const segmentBuffer = await renderAudioForDownload(segmentStartTime, segmentDuration, channel);
+                
+                const rawData = audioBufferToRawData(segmentBuffer); 
+                blobSegments.push(new Blob([rawData])); 
+                totalDataLength += rawData.byteLength;
+                
+            }
+            
+            statusDiv.textContent = 'MENGGABUNGKAN SEGMEN...';
+            const wavHeaderBlob = createWavHeaderBlob(totalDataLength, sampleRate, numOfChan);
+
+            const finalBlobParts = [wavHeaderBlob, ...blobSegments];
+            const finalWavBlob = new Blob(finalBlobParts, { type: 'audio/wav' });
+
+            const url = URL.createObjectURL(finalWavBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            statusDiv.textContent = `FILE ${fileName} BERHASIL DIBUAT OLEH SKYLORD DAN SIAP DIUNDUH!`;
+
+        } catch (error) {
+            statusDiv.textContent = `Terjadi kesalahan saat membuat file audio: ${error.message}. Coba refresh dan ulangi.`;
+        } finally {
+            resetUiAndInitialize();
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', checkPassword); 
+
 </script>
 
 </body>
